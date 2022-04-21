@@ -7,10 +7,12 @@ import requests
 from icalendar import Calendar, Event
 import urllib
 
-assignments = Calendar.from_ical(urllib.request.urlopen("link").read())
+link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&authtoken=afe92bc34dfe7877aec562349a943f3ec47447a6&preset_what=all&preset_time=recentupcoming"
 
-class Subject:
-    pass
+assignments = Calendar.from_ical(urllib.request.urlopen(link).read())
+
+class Class: # I know, it is weird. "Class Class. I didn't want to put subject."
+    def __init__(name, level, description)
 
 class Test:
     pass
