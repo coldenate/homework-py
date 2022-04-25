@@ -1,0 +1,3 @@
+1. Indent Rainbow Palettes
+2. Colorize
+3. TODO/FIXME Highlight
