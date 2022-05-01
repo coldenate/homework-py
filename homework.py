@@ -11,7 +11,7 @@ link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&
 
 assignments = Calendar.from_ical(urllib.request.urlopen(link).read())
 
-class Class: # I know, it is weird. "Class Class. I didn't want to put subject."
+class Subject: 
     def __init__(name, level, description)
 
 class Test:
