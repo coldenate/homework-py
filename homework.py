@@ -27,10 +27,10 @@ class Student:
     def cli_display_works(self):
         """display all works in a table view using rich library"""
         table = Table(title=f"{self.name}'s Works")
-        table.add_column("Name", style="bold")
-        table.add_column("Description", style="bold")
-        table.add_column("Due Date", style="bold")
-        table.add_column("Subject", style="bold")
+        table.add_column("Name")
+        table.add_column("Description")
+        table.add_column("Due Date")
+        table.add_column("Subject")
         for work in self.works:
             table.add_row(
                 work.title, work.description, work.due_date, work.subject.name
@@ -62,7 +62,7 @@ class Student:
             works = []
             for event in events:
                 event_name = event["SUMMARY"]
-                event_subject = event["CATEGORIES"]
+                event_subject = event["CATEGORIES"].cats[0]  # the first category found
 
                 # description = event["DESCRIPTION"]
                 # if description == None:
