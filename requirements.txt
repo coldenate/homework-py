@@ -3,4 +3,4 @@ humanize
 recurring-ical-events
 requests
 icalendar
-textual
+rich

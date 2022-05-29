@@ -1,12 +1,18 @@
 import datetime as dt
 import json
+import random
+import time
 import urllib
+from time import sleep
 
 import aiohttp
 import humanize
 import recurring_ical_events
 import requests
+import rich
 from icalendar import Calendar, Event
+from rich.console import Console
+from rich.table import Table
 
 link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&authtoken=afe92bc34dfe7877aec562349a943f3ec47447a6&preset_what=all&preset_time=recentupcoming"
 
@@ -19,20 +25,23 @@ class Student:
         self.works: list = works
 
     def cli_display_works(self):
-        """display all works in a table view"""
-        print("\n\n")
-        print("{:^20}".format("Works"))
-        print("{:^20}".format("-" * 20))
+        """display all works in a table view using rich library"""
+        table = Table(title=f"{self.name}'s Works")
+        table.add_column("Name", style="bold")
+        table.add_column("Description", style="bold")
+        table.add_column("Due Date", style="bold")
+        table.add_column("Subject", style="bold")
         for work in self.works:
-            print(
-                "{:<20} | {:<20} | {:<20} | {:<20}".format(
-                    work.title, work.description, work.due_date, work.subject.name
-                )
+            table.add_row(
+                work.title, work.description, work.due_date, work.subject.name
             )
+        console = Console()
+        console.print(table)
 
     def sync(self, rangetype: int):
         """Function syncs Works Object type with cloud calendar file provider
         :param provider: url of calendar file provider"""
+
         raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
         stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
         yesterday = stt.strftime("%Y, %m, %d")
