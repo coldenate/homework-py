@@ -10,20 +10,33 @@ from icalendar import Calendar, Event
 
 link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&authtoken=afe92bc34dfe7877aec562349a943f3ec47447a6&preset_what=all&preset_time=recentupcoming"
 
-assignments = Calendar.from_ical(urllib.request.urlopen(link).read())
-
 
 class Student:
-    def __init__(self, name: str, provider: str, email: str = None, works: list = None):
+    def __init__(self, name: str, provider: str, email: str = None, works: list = []):
         self.name = name
         self.email = email
         self.provider = provider
         self.works: list = works
 
-    def sync(self, provider, rangetype: int):
-        stt = dt.today() - dt.timedelta(days=1)  # yesterday
+    def cli_display_works(self):
+        """display all works in a table view"""
+        print("\n\n")
+        print("{:^20}".format("Works"))
+        print("{:^20}".format("-" * 20))
+        for work in self.works:
+            print(
+                "{:<20} | {:<20} | {:<20} | {:<20}".format(
+                    work.title, work.description, work.due_date, work.subject.name
+                )
+            )
+
+    def sync(self, rangetype: int):
+        """Function syncs Works Object type with cloud calendar file provider
+        :param provider: url of calendar file provider"""
+        raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
+        stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
         yesterday = stt.strftime("%Y, %m, %d")
-        fourtdayslater = dt.today() + dt.timedelta(days=14)
+        fourtdayslater = dt.date.today() + dt.timedelta(days=14)
         truefourt = fourtdayslater.strftime("%Y, %m, %d")
         start_date = tuple(map(int, yesterday.split(", ")))
         end_date = tuple(map(int, truefourt.split(", ")))
@@ -31,7 +44,9 @@ class Student:
         humanstart = stt.strftime("%B %d, %Y")  # human readable starttime
         humanend = fourtdayslater.strftime("%B %d, %Y")  # human readable endtime
 
-        events = recurring_ical_events.of(assignments).between(start_date, end_date)
+        events = recurring_ical_events.of(raw_works).between(
+            (2022, 5, 1), (2022, 5, 15)
+        )
         if len(events) == 0:
             return False
         if len(events) > 0:
@@ -53,12 +68,12 @@ class Student:
                     "event_description": event_description,
                 }
                 work = Work(
-                    name=event_name,
-                    description=event_description,
-                    due_date=starttime_formatted,
-                    subject=Subject(name=event_subject),
+                    name=f"{event_name}",
+                    description=f"{event_description}",
+                    due_date=f"{starttime_formatted}",
+                    subject=Subject(name=f"{event_subject}"),
                 )
-                self.works.append(dict)
+                self.works.append(work)
 
 
 class Subject(Student):
