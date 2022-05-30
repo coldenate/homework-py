@@ -42,7 +42,13 @@ class Student:
         """Function syncs Works Object type with cloud calendar file provider
         :param provider: url of calendar file provider"""
 
-        raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
+        try:
+            raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
+        except:
+            print(
+                "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection."
+            )
+            raw_works = None
         stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
         yesterday = stt.strftime("%Y, %m, %d")
         fourtdayslater = dt.date.today() + dt.timedelta(days=14)
