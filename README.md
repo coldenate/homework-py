@@ -1,6 +1,6 @@
 # homework-py
 
-Hallo!! Homework-py is an abstraction over many SIS[1] simple ways of feeding assignment data into a student's many electronic planners.
+Hallo!! Homework-py is an abstraction over many SIS[^1] simple ways of feeding assignment data into a student's many electronic planners.
 
 ## Why is this existing when this has been solved before?
 

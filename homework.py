@@ -1,5 +1,6 @@
 import datetime as dt
 import urllib
+import urllib.request
 
 import recurring_ical_events
 from icalendar import Calendar, Event
