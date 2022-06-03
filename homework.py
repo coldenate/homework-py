@@ -1,20 +1,11 @@
 import datetime as dt
-import json
-import random
-import time
 import urllib
-from time import sleep
 
-import aiohttp
-import humanize
 import recurring_ical_events
-import requests
-import rich
 from icalendar import Calendar, Event
 from rich.console import Console
 from rich.table import Table
 
-# TODO: Update to python 3.10
 link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&authtoken=afe92bc34dfe7877aec562349a943f3ec47447a6&preset_what=all&preset_time=recentupcoming"
 
 
@@ -123,11 +114,11 @@ class Student:
             raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
         except:
             print(
-                "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection."
+                "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
             )
             raw_works = None
 
-        if range_start is None and range_end is None or rangetype is 0:
+        if range_start is None and range_end is None or rangetype == 0:
             events = recurring_ical_events.of(raw_works).all()
         if range_start is not None and range_end is not None:
             events = recurring_ical_events.of(raw_works).between(range_start, range_end)

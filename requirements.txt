@@ -1,5 +1,3 @@
-aiohttp
-humanize
 recurring-ical-events
 requests
 icalendar
