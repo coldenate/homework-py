@@ -7,8 +7,6 @@ from icalendar import Calendar, Event
 from rich.console import Console
 from rich.table import Table
 
-link = "https://har-tx.moodle.renweb.com/calendar/export_execute.php?userid=509&authtoken=afe92bc34dfe7877aec562349a943f3ec47447a6&preset_what=all&preset_time=recentupcoming"
-
 
 class Student:
     def __init__(self, name: str, provider: str, email: str = None, works: list = []):
