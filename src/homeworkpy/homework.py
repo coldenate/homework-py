@@ -1,12 +1,19 @@
 import datetime as dt
 import urllib
 import urllib.request
+from functools import cache
 
 import recurring_ical_events
 from icalendar import Calendar, Event
 from rich.console import Console
 from rich.table import Table
 
+
+@cache
+def fetch_calendar(url):
+    """Fetches calendar file from url"""
+    x = urllib.request.urlopen(url)
+    return x
 
 class Student:
     def __init__(self, name: str, provider: str, email: str = None, works: list = []):
@@ -110,7 +117,7 @@ class Student:
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
 
         try:
-            raw_works = Calendar.from_ical(urllib.request.urlopen(self.provider).read())
+            raw_works = Calendar.from_ical(fetch_calendar(self.provider).read())
         except:
             print(
                 "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
