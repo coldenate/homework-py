@@ -1,0 +1,11 @@
+requests
+vcrpy
+pytest
+black
+bs4
+aiohttp
+recurring-ical-events
+requests
+icalendar
+rich
+bumpver
