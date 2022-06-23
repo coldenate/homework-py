@@ -10,16 +10,34 @@ from rich.table import Table
 
 
 @cache
-def fetch_calendar(url):
-    """Fetches calendar file from url"""
-    x = urllib.request.urlopen(url)
-    return x
+def fetch_calendar(src: str, is_file: bool = False):
+    """Fetches calendar file from url,
+    :param: is_file | uses a file opener instead of a link"""
+    if is_file == False:
+        file = urllib.request.urlopen(src)
+        # return x
+        raw_works = Calendar.from_ical(file.read())
+        return raw_works
+    if is_file == True:
+        file = open(src, "r")
+        # return file
+        raw_works = Calendar.from_ical(file.read())
+        return raw_works
+
 
 class Student:
-    def __init__(self, name: str, provider: str, email: str = None, works: list = []):
+    def __init__(
+        self,
+        name: str,
+        provider: str,
+        is_file: bool,
+        email: str = None,
+        works: list = [],
+    ):
         self.name = name
         self.email = email
         self.provider = provider
+        self.providerIsFile = is_file
         self.works: list = works
 
     def convert_to_dict(self, save_space: bool = False) -> dict:
@@ -108,7 +126,10 @@ class Student:
         console.print(table)
 
     def sync(
-        self, range_start: tuple = None, range_end: tuple = None, rangetype: int = None
+        self,
+        range_start: tuple = None,
+        range_end: tuple = None,
+        rangetype: int = None,
     ):
         """Function syncs Works Object type with cloud calendar file provider
         :param provider: url of calendar file provider
@@ -117,7 +138,8 @@ class Student:
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
 
         try:
-            raw_works = Calendar.from_ical(fetch_calendar(self.provider).read())
+            # raw_works = Calendar.from_ical(fetch_calendar(self.provider).read())
+            raw_works = fetch_calendar(self.provider, is_file=self.providerIsFile)
         except:
             print(
                 "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."

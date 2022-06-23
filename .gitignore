@@ -128,3 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 mentor.py
+src/homeworkpy/private.py
+src/homeworkpy/icalexport (1).ics

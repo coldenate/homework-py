@@ -1,6 +1,7 @@
 import homework  # importing the file that contains the objects. This is bound to change.
+from private import link
 
-link1 = "insert your link"
+link1 = link
 link2 = "insert your link" 
 # Those are links to ics files. For now, ICS files are what we parse. 
 
@@ -9,7 +10,7 @@ link2 = "insert your link"
 m = input("Input 1 for homework or 2 for random ")
 
 if m == "1":
-    ns = homework.Student("Note Salad", link1) # This is the creation of a Student object. It is assigned to "ns". The parameter is a link to the server that will *immediately* serve the ics file.
+    ns = homework.Student("Note Salad", link, True) # This is the creation of a Student object. It is assigned to "ns". The parameter is a link to the server that will *immediately* serve the ics file.
 if m == "2":
     ns = homework.Student("Note Salad", link2)
 
