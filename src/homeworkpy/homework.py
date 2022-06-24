@@ -33,12 +33,14 @@ class Student:
         is_file: bool,
         email: str = None,
         works: list = [],
+        processed_grades: list = [],
     ):
         self.name = name
         self.email = email
         self.provider = provider
         self.providerIsFile = is_file
         self.works: list = works
+        self.processed_grades = []
 
     def convert_to_dict(self, save_space: bool = False) -> dict:
         """Convert all attributes of student to dictionary, but if save_space is true, take it out of the dictionary.
