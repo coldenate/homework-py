@@ -1,12 +1,16 @@
 import datetime as dt
+import json
 import urllib
 import urllib.request
 from functools import cache
 
 import recurring_ical_events
+import requests
+from bs4 import BeautifulSoup
 from icalendar import Calendar, Event
 from rich.console import Console
 from rich.table import Table
+from tools import cleanup_json, html_to_json, merge_data
 
 
 @cache
@@ -25,6 +29,28 @@ def fetch_calendar(src: str, is_file: bool = False):
         return raw_works
 
 
+class ReportCard:
+    def __init__(
+        self,
+        known_classes: list = [],
+        classes: dict = None,
+    ):
+        self.known_classes = known_classes
+        self.classes = classes
+
+    def extract(self, html):
+        """Extracts data from a report card (NOT TO BE USED OUTSIDE OF THIS LIBRARY)"""
+        content_no_thead = html
+
+        nothead = json.loads((html_to_json(content_no_thead, indent=4)))
+
+        # print("cleaned up version")
+        table_headers = cleanup_json(nothead, self.known_classes)
+        classDictonaries = merge_data(self.known_classes, table_headers)
+        self.classes = classDictonaries
+        return classDictonaries
+
+
 class Student:
     def __init__(
         self,
@@ -33,14 +59,34 @@ class Student:
         is_file: bool,
         email: str = None,
         works: list = [],
-        processed_grades: list = [],
+        report_card: ReportCard = None,
+        classes: list = [],
+        renweb: bool = False,
+        renweb_link: str = None,
+        renwebCredentials: dict = {
+            "DistrictCode": None,
+            "username": None,
+            "password": None,
+            "UserType": "PARENTSWEB-STUDENT",  # I think this will break across different renweb sites...
+            "login": "Log+In",
+        },
+        renwebDisctrictCode: str = None,
     ):
         self.name = name
         self.email = email
         self.provider = provider
         self.providerIsFile = is_file
         self.works: list = works
-        self.processed_grades = []
+        self.report_card: ReportCard = report_card
+        self.classes = classes
+        self.renweb = renweb
+        self.renweb_link: self = renweb_link
+        self.renwebCredentials: dict = renwebCredentials
+        self.renwebDisctrictCode: str = renwebDisctrictCode
+        self.renwebSession = None
+
+        if self.renweb == True:
+            self.renwebSession = requests.Session()
 
     def convert_to_dict(self, save_space: bool = False) -> dict:
         """Convert all attributes of student to dictionary, but if save_space is true, take it out of the dictionary.
@@ -61,6 +107,31 @@ class Student:
                 "provider": self.provider,
                 "works": works,
             }
+
+    def import_from_renweb(self):
+        login_info = self.renwebSession.post(
+            self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
+        )
+        reportCardMain = self.renwebSession.get(
+            self.renweb_link + "/pwr/student/report-card.cfm"
+        )
+
+        soup = BeautifulSoup(reportCardMain.content, "html.parser")
+        NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
+
+        reportCardLocation = NASReportCardElement[0].attrs["src"]
+
+        report_card_request = self.renwebSession.get(
+            self.renweb_link + reportCardLocation
+        )
+
+        reportCardHTML = report_card_request.content
+
+        self.report_card = ReportCard()
+
+        self.report_card.extract(reportCardHTML)
+
+        self.renwebSession.close()
 
     def some_random_calc(self):
         stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
@@ -138,7 +209,7 @@ class Student:
         :param range_start: tuple of start date ex. (2020, 1, 2) --> (year, month, day)
         :param range_end: tuple of end date
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
-
+        # SYNCING CALENDARS
         try:
             # raw_works = Calendar.from_ical(fetch_calendar(self.provider).read())
             raw_works = fetch_calendar(self.provider, is_file=self.providerIsFile)
@@ -212,6 +283,9 @@ class Student:
                     subject=Subject(name=f"{event_subject}"),
                 )
                 self.works.append(work)
+        # SYNCING REPORT CARDS
+        if self.renweb == True:
+            self.import_from_renweb()
 
 
 class Subject(Student):

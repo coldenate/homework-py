@@ -1,5 +1,9 @@
 # homework-py
 
+## NOTICE
+
+Only one singular school's renweb has been confirmed as being supported in initial requests. (This repo is very experiementaldjnkdjnsd) 
+
 Hallo!! Homework-py is an abstraction over many SIS[^1] simple ways of feeding assignment data into a student's many electronic planners.
 
 ## Why is this existing when this has been solved before?
