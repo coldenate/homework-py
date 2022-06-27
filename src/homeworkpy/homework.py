@@ -1,3 +1,7 @@
+"""
+Please refer to the documentation provided in the README.md,
+which can be found at gorpyter's PyPI URL: https://pypi.org/project/gorpyter/
+"""
 import datetime as dt
 import json
 import urllib
@@ -7,7 +11,7 @@ from functools import cache
 import recurring_ical_events
 import requests
 from bs4 import BeautifulSoup
-from icalendar import Calendar, Event
+from icalendar import Calendar
 from rich.console import Console
 from rich.table import Table
 from tools import cleanup_json, html_to_json, merge_data
@@ -71,6 +75,7 @@ class Student:
             "login": "Log+In",
         },
         renwebDisctrictCode: str = None,
+        renwebLoggedIn: bool = False,
     ):
         self.name = name
         self.email = email
@@ -84,6 +89,7 @@ class Student:
         self.renwebCredentials: dict = renwebCredentials
         self.renwebDisctrictCode: str = renwebDisctrictCode
         self.renwebSession = None
+        self.renwebLoggedIn: bool = renwebLoggedIn
 
         if self.renweb == True:
             self.renwebSession = requests.Session()
@@ -108,10 +114,18 @@ class Student:
                 "works": works,
             }
 
-    def import_from_renweb(self):
+    def renwebLogin(self) -> requests.Session:
+        """Logs into the renweb website"""
         login_info = self.renwebSession.post(
             self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
         )
+        self.renwebLoggedIn = True
+
+    def import_card_from_renweb(self):
+
+        if self.renwebLoggedIn != True:
+            self.renwebLogin()
+
         reportCardMain = self.renwebSession.get(
             self.renweb_link + "/pwr/student/report-card.cfm"
         )
@@ -285,7 +299,7 @@ class Student:
                 self.works.append(work)
         # SYNCING REPORT CARDS
         if self.renweb == True:
-            self.import_from_renweb()
+            self.import_card_from_renweb()
 
 
 class Subject(Student):
