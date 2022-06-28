@@ -3,6 +3,7 @@ from private import link, login_info
 
 LINK1 = link
 LINK2 = "insert your link"
+LINK3 = "insert your link"
 # Those are links to ics files. For now, ICS files are what we parse.
 
 
@@ -10,7 +11,11 @@ LINK2 = "insert your link"
 
 ns = homework.Student(
     "Note Salad",
-    link,
+    {
+        link: True,
+        LINK2: False,
+        LINK3: False,
+    },
     True,
     renweb=True,
     renweb_link="https://har-tx.client.renweb.com",
@@ -26,4 +31,4 @@ ns.sync()
 ns.cli_display_works()
 # a simple test function that uses Rich to display
 # a table of the homework objects. They are called works.
-print(ns.report_card.classes)
+# print(ns.report_card.classes)
