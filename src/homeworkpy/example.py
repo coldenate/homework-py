@@ -10,11 +10,7 @@ LINK2 = "insert your link"
 
 ns = homework.Student(
     "Note Salad",
-    {
-        link: True,
-        "https://calendar.google.com/calendar/ical/njips87tv2foa0cdeehge6u17c%40group.calendar.google.com/private-eae13d44ba261de9f28664ded6223358/basic.ics": False,
-        "https://har-tx.client.renweb.com/pwr/school/ical.cfm?u=1202570&h=7D8CF689EB7C&s=&ut=Student&f2=680740&sc=&t=sch": False,
-    },
+    link,
     True,
     renweb=True,
     renweb_link="https://har-tx.client.renweb.com",
@@ -30,4 +26,4 @@ ns.sync()
 ns.cli_display_works()
 # a simple test function that uses Rich to display
 # a table of the homework objects. They are called works.
-# print(ns.report_card.classes)
+print(ns.report_card.classes)
