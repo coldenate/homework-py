@@ -17,9 +17,10 @@ from rich.table import Table
 from tools import cleanup_json, html_to_json, merge_data
 
 # TODO:
-# - Implement true syncing technology
+# - Implement overwrites for syncing.
 #  - Uitlize other objects within storage
 #  - Implement a versatile calendar range system.
+
 
 @cache
 def fetch_calendar(src: str, is_file: bool = False):
@@ -301,7 +302,8 @@ class Student:
                     due_date=f"{starttime_formatted}",
                     subject=Subject(name=f"{event_subject}"),
                 )
-                self.works.append(work)
+                works.append(work)
+            return works
 
     def sync(
         self,
@@ -315,15 +317,25 @@ class Student:
         :param range_end: tuple of end date
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING CALENDARS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        listofworks = []
         for provider in self.providers:
-            x =self.providers[provider]
-            self.process_append_ical_file(
+            # x = self.providers[provider]
+            returned_works = self.process_append_ical_file(
                 provider,
                 range_start,
                 range_end,
                 rangetype,
                 isFile=self.providers[provider],
             )
+            listofworks.append(returned_works)
+
+        final_export = []
+        for seto in listofworks:
+            for work in seto:
+                final_export.append(work) # we iterate through each individual event, and append it to an exportable list.
+                # then we replace the object's works attribute with that.
+        self.works = final_export
+
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.renweb == True:
             self.import_card_from_renweb()
