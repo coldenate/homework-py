@@ -16,6 +16,10 @@ from rich.console import Console
 from rich.table import Table
 from tools import cleanup_json, html_to_json, merge_data
 
+# TODO:
+# - Implement true syncing technology
+#  - Uitlize other objects within storage
+#  - Implement a versatile calendar range system.
 
 @cache
 def fetch_calendar(src: str, is_file: bool = False):

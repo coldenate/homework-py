@@ -13,8 +13,8 @@ ns = homework.Student(
     "Note Salad",
     {
         link: True,
-        LINK2: False,
-        LINK3: False,
+        # LINK2: False,
+        # LINK3: False,
     },
     True,
     renweb=True,
