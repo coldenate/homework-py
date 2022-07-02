@@ -123,30 +123,39 @@ class Student:
 
     def renwebLogin(self) -> requests.Session:
         """Logs into the renweb website"""
-        login_info = self.renwebSession.post(
-            self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
-        )
-        self.renwebLoggedIn = True
+        try:
+
+            login_info = self.renwebSession.post(
+                self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
+            )
+            self.renwebLoggedIn = True
+        except requests.exceptions.MissingSchema:
+            print("Failed to authenticate with Renweb Servers")
 
     def import_card_from_renweb(self):
 
         if self.renwebLoggedIn != True:
             self.renwebLogin()
+        try:
+            reportCardMain = self.renwebSession.get(
+                self.renweb_link + "/pwr/student/report-card.cfm"
+            )
 
-        reportCardMain = self.renwebSession.get(
-            self.renweb_link + "/pwr/student/report-card.cfm"
-        )
+            soup = BeautifulSoup(reportCardMain, "html.parser")
+            NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
 
-        soup = BeautifulSoup(reportCardMain.content, "html.parser")
-        NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
+            reportCardLocation = NASReportCardElement[0].attrs["src"]
 
-        reportCardLocation = NASReportCardElement[0].attrs["src"]
+            report_card_request = self.renwebSession.get(
+                self.renweb_link + reportCardLocation
+            )
+            reportCardHTML = report_card_request.content
 
-        report_card_request = self.renwebSession.get(
-            self.renweb_link + reportCardLocation
-        )
-
-        reportCardHTML = report_card_request.content
+        except Exception as e:
+            print(e)
+            # Open local file
+            report_card_request = open(self.renweb_link, "r").read()
+            reportCardHTML = report_card_request
 
         self.report_card = ReportCard()
 
@@ -211,11 +220,9 @@ class Student:
         table.add_column("Name")
         table.add_column("Description")
         table.add_column("Due Date")
-        table.add_column("Subject")
+        table.add_column("course")
         for work in self.works:
-            table.add_row(
-                work.title, work.description, work.due_date, work.subject.name
-            )
+            table.add_row(work.title, work.description, work.due_date, work.course.name)
         console = Console()
         console.print(table)
 
@@ -272,11 +279,11 @@ class Student:
                 except:
                     event_name = "No Title"
                 try:
-                    event_subject = event["CATEGORIES"].cats[
+                    event_course = event["CATEGORIES"].cats[
                         0
                     ]  # the first category found
                 except:
-                    event_subject = "No Subject"
+                    event_course = "No course"
                 try:
                     event_starttime = event["DTSTART"].dt
                     starttime_formatted = event_starttime.strftime("%B %d, %Y")
@@ -292,7 +299,7 @@ class Student:
                     #     description = "No description"
                 dict = {
                     "event_name": event_name,
-                    "event_subject": event_subject,
+                    "event_course": event_course,
                     "event_starttime": starttime_formatted,
                     "event_description": event_description,
                 }
@@ -300,7 +307,7 @@ class Student:
                     name=f"{event_name}",
                     description=f"{event_description}",
                     due_date=f"{starttime_formatted}",
-                    subject=Subject(name=f"{event_subject}"),
+                    course=Course(name=f"{event_course}"),
                 )
                 works.append(work)
             return works
@@ -332,7 +339,9 @@ class Student:
         final_export = []
         for seto in listofworks:
             for work in seto:
-                final_export.append(work) # we iterate through each individual event, and append it to an exportable list.
+                final_export.append(
+                    work
+                )  # we iterate through each individual event, and append it to an exportable list.
                 # then we replace the object's works attribute with that.
         self.works = final_export
 
@@ -341,10 +350,36 @@ class Student:
             self.import_card_from_renweb()
 
 
-class Subject(Student):
-    def __init__(self, name: str = None, description: str = None):
+class Course(Student):
+    def __init__(
+        self,
+        name: str = None,
+        description: str = None,
+        teacher: str = None,
+        first_quarter_grade: str | int = None,
+        second_quarter_grade: str | int = None,
+        third_quarter_grade: str | int = None,
+        fourth_quarter_grade: str | int = None,
+        first_exam_grade: str | int = None,
+        second_exam_grade: str | int = None,
+        semester_grade_first: str | int = None,
+        semester_grade_second: str | int = None,
+        credit_first_semester: str | float = None,
+        credit_second_semester: str | float = None,
+    ):
         self.name = name
         self.description = description
+        self.teacher = teacher
+        self.first_quarter_grade = first_quarter_grade
+        self.second_quarter_grade = second_quarter_grade
+        self.third_quarter_grade = third_quarter_grade
+        self.fourth_quarter_grade = fourth_quarter_grade
+        self.first_exam_grade = first_exam_grade
+        self.second_exam_grade = second_exam_grade
+        self.semester_grade_first = semester_grade_first
+        self.semester_grade_second = semester_grade_second
+        self.credit_first_semester = credit_first_semester
+        self.credit_second_semester = credit_second_semester
 
     pass
 
@@ -355,7 +390,7 @@ class Work(Student):
         name: str,
         description: str,
         due_date: dt.datetime,
-        subject: Subject,
+        course: Course,
         point_weight: int = None,
         completed: bool = False,
         grade: float = None,
@@ -365,7 +400,7 @@ class Work(Student):
         self.description = description
         self.due_date = due_date
         self.point_weight = point_weight
-        self.subject = subject
+        self.course = course
         self.completed = completed
         self.grade = grade
         self.teacher = teacher
@@ -376,7 +411,7 @@ class Work(Student):
             "title": self.title,
             "description": self.description,
             "due_date": self.due_date,
-            "subject": self.subject.name,
+            "course": self.course.name,
             "point_weight": self.point_weight,
             "completed": self.completed,
             "grade": self.grade,

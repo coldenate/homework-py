@@ -60,6 +60,7 @@ def cleanup_json(input: list, known_classes):
 
 
 def merge_data(input: list, table_headers):
+    # TODO: Redo this whole function to incorpate homework.Student.Course
     """Merge the stored table header with the table contents to prepare an accurate dictionary. Returns a list containing dictionaries corresponding to the amount of classes given to the initial inputs."""
     # Take two lists, merge them side by side into a dictionary
     EMPTYHEADERS = {}
