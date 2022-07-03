@@ -17,8 +17,9 @@ from rich.table import Table
 from tools import cleanup_json, html_to_json
 
 # TODO:
-# - Implement overwrites for syncing.
-#  - Uitlize other objects within storage
+# -  (toggleable) Auto syncing on class init
+# -  infer missing data from auto sync
+#  - block auto sync error throws
 #  - Implement a versatile calendar range system.
 
 
