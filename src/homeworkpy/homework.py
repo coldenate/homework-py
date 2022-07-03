@@ -14,7 +14,13 @@ from bs4 import BeautifulSoup
 from icalendar import Calendar
 from rich.console import Console
 from rich.table import Table
-from tools import cleanup_json, html_to_json, merge_data
+from tools import cleanup_json, html_to_json
+
+# TODO:
+# -  (toggleable) Auto syncing on class init
+# -  infer missing data from auto sync
+#  - block auto sync error throws
+#  - Implement a versatile calendar range system.
 
 
 @cache
@@ -42,6 +48,62 @@ class ReportCard:
         self.known_classes = known_classes
         self.classes = classes
 
+    def merge_data(input: list, table_headers):
+        # TODO: Redo this whole function to incorpate homework.Student.Course
+        """ONLY FOR USE WITH THE RENWEB REPORT CARD TABLES | Merge the stored table header with the table contents to prepare an accurate dictionary.
+        Returns a list containing dictionaries corresponding to the amount of classes given to the initial inputs."""
+        # Take two lists, merge them side by side into a dictionary
+        EMPTYHEADERS = {}
+        credit_count = 0
+        exam_count = 0
+        for element in table_headers:
+            if element == "Credit":
+                credit_count += 1
+                if credit_count > 1:
+                    EMPTYHEADERS[element + str(credit_count)] = None
+            if element == "Exam":
+                exam_count += 1
+                if exam_count > 1:
+                    EMPTYHEADERS[element + str(exam_count)] = None
+            if element == "":
+                # omit adding a false flag (do nothing)
+                continue
+            EMPTYHEADERS[element] = None
+            key = None
+
+        all_classes = []
+
+        for row in input:
+            temp_dict = EMPTYHEADERS.copy()
+            for index, element in enumerate(row):
+                try:
+                    temp_dict[list(temp_dict)[index]] = element
+                except:
+                    continue
+            all_classes.append(temp_dict)
+
+        list_of_classes = []
+        for obj in all_classes:
+            # this loop iteration will be the umbrella over a single Course Object.
+            # we will match the keys of the dictionary to the course object attributes
+            course = Course(
+                name=obj["Subject"],
+                teacher=obj["Teacher"],
+                first_quarter_grade=obj["1st"],
+                second_quarter_grade=obj["2nd"],
+                first_exam_grade=obj["Exam"],
+                semester_grade_first=obj["Sem 1"],
+                credit_first_semester=obj["Credit"],
+                third_quarter_grade=obj["3rd"],
+                fourth_quarter_grade=obj["4th"],
+                second_exam_grade=obj["Exam2"],
+                semester_grade_second=obj["Sem 2"],
+                credit_second_semester=obj["Credit2"],
+            )
+            list_of_classes.append(course)
+
+        return list_of_classes
+
     def extract(self, html):
         """Extracts data from a report card (NOT TO BE USED OUTSIDE OF THIS LIBRARY)"""
         content_no_thead = html
@@ -50,7 +112,7 @@ class ReportCard:
 
         # print("cleaned up version")
         table_headers = cleanup_json(nothead, self.known_classes)
-        classDictonaries = merge_data(self.known_classes, table_headers)
+        classDictonaries = ReportCard.merge_data(self.known_classes, table_headers)
         self.classes = classDictonaries
         return classDictonaries
 
@@ -118,30 +180,39 @@ class Student:
 
     def renwebLogin(self) -> requests.Session:
         """Logs into the renweb website"""
-        login_info = self.renwebSession.post(
-            self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
-        )
-        self.renwebLoggedIn = True
+        try:
+
+            login_info = self.renwebSession.post(
+                self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
+            )
+            self.renwebLoggedIn = True
+        except requests.exceptions.MissingSchema:
+            print("Failed to authenticate with Renweb Servers")
 
     def import_card_from_renweb(self):
 
         if self.renwebLoggedIn != True:
             self.renwebLogin()
+        try:
+            reportCardMain = self.renwebSession.get(
+                self.renweb_link + "/pwr/student/report-card.cfm"
+            )
 
-        reportCardMain = self.renwebSession.get(
-            self.renweb_link + "/pwr/student/report-card.cfm"
-        )
+            soup = BeautifulSoup(reportCardMain, "html.parser")
+            NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
 
-        soup = BeautifulSoup(reportCardMain.content, "html.parser")
-        NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
+            reportCardLocation = NASReportCardElement[0].attrs["src"]
 
-        reportCardLocation = NASReportCardElement[0].attrs["src"]
+            report_card_request = self.renwebSession.get(
+                self.renweb_link + reportCardLocation
+            )
+            reportCardHTML = report_card_request.content
 
-        report_card_request = self.renwebSession.get(
-            self.renweb_link + reportCardLocation
-        )
-
-        reportCardHTML = report_card_request.content
+        except Exception as e:
+            print(e)
+            # Open local file
+            report_card_request = open(self.renweb_link, "r").read()
+            reportCardHTML = report_card_request
 
         self.report_card = ReportCard()
 
@@ -206,11 +277,9 @@ class Student:
         table.add_column("Name")
         table.add_column("Description")
         table.add_column("Due Date")
-        table.add_column("Subject")
+        table.add_column("course")
         for work in self.works:
-            table.add_row(
-                work.title, work.description, work.due_date, work.subject.name
-            )
+            table.add_row(work.title, work.description, work.due_date, work.course.name)
         console = Console()
         console.print(table)
 
@@ -267,11 +336,11 @@ class Student:
                 except:
                     event_name = "No Title"
                 try:
-                    event_subject = event["CATEGORIES"].cats[
+                    event_course = event["CATEGORIES"].cats[
                         0
                     ]  # the first category found
                 except:
-                    event_subject = "No Subject"
+                    event_course = "No course"
                 try:
                     event_starttime = event["DTSTART"].dt
                     starttime_formatted = event_starttime.strftime("%B %d, %Y")
@@ -287,7 +356,7 @@ class Student:
                     #     description = "No description"
                 dict = {
                     "event_name": event_name,
-                    "event_subject": event_subject,
+                    "event_course": event_course,
                     "event_starttime": starttime_formatted,
                     "event_description": event_description,
                 }
@@ -295,9 +364,10 @@ class Student:
                     name=f"{event_name}",
                     description=f"{event_description}",
                     due_date=f"{starttime_formatted}",
-                    subject=Subject(name=f"{event_subject}"),
+                    course=Course(name=f"{event_course}"),
                 )
-                self.works.append(work)
+                works.append(work)
+            return works
 
     def sync(
         self,
@@ -311,24 +381,60 @@ class Student:
         :param range_end: tuple of end date
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING CALENDARS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        listofworks = []
         for provider in self.providers:
-            x =self.providers[provider]
-            self.process_append_ical_file(
+            # x = self.providers[provider]
+            returned_works = self.process_append_ical_file(
                 provider,
                 range_start,
                 range_end,
                 rangetype,
                 isFile=self.providers[provider],
             )
+            listofworks.append(returned_works)
+
+        final_export = []
+        for seto in listofworks:
+            for work in seto:
+                final_export.append(
+                    work
+                )  # we iterate through each individual event, and append it to an exportable list.
+                # then we replace the object's works attribute with that.
+        self.works = final_export
+
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.renweb == True:
             self.import_card_from_renweb()
 
 
-class Subject(Student):
-    def __init__(self, name: str = None, description: str = None):
+class Course(Student):
+    def __init__(
+        self,
+        name: str = None,
+        teacher: str = None,
+        first_quarter_grade: str | int = None,
+        second_quarter_grade: str | int = None,
+        first_exam_grade: str | int = None,
+        semester_grade_first: str | int = None,
+        credit_first_semester: str | float = None,
+        third_quarter_grade: str | int = None,
+        fourth_quarter_grade: str | int = None,
+        second_exam_grade: str | int = None,
+        semester_grade_second: str | int = None,
+        credit_second_semester: str | float = None,
+    ):
         self.name = name
-        self.description = description
+        self.teacher = teacher
+        self.first_quarter_grade = first_quarter_grade
+        self.second_quarter_grade = second_quarter_grade
+        self.third_quarter_grade = third_quarter_grade
+        self.fourth_quarter_grade = fourth_quarter_grade
+        self.first_exam_grade = first_exam_grade
+        self.second_exam_grade = second_exam_grade
+        self.semester_grade_first = semester_grade_first
+        self.semester_grade_second = semester_grade_second
+        self.credit_first_semester = credit_first_semester
+        self.credit_second_semester = credit_second_semester
 
     pass
 
@@ -339,7 +445,7 @@ class Work(Student):
         name: str,
         description: str,
         due_date: dt.datetime,
-        subject: Subject,
+        course: Course,
         point_weight: int = None,
         completed: bool = False,
         grade: float = None,
@@ -349,7 +455,7 @@ class Work(Student):
         self.description = description
         self.due_date = due_date
         self.point_weight = point_weight
-        self.subject = subject
+        self.course = course
         self.completed = completed
         self.grade = grade
         self.teacher = teacher
@@ -360,7 +466,7 @@ class Work(Student):
             "title": self.title,
             "description": self.description,
             "due_date": self.due_date,
-            "subject": self.subject.name,
+            "course": self.course.name,
             "point_weight": self.point_weight,
             "completed": self.completed,
             "grade": self.grade,
