@@ -2,6 +2,25 @@ import json
 
 from bs4 import BeautifulSoup
 
+# due to circular imports, this file may never import homework
+
+
+# Known translations for Report Card data to subject.
+
+# KNOWN_TRANSLATIONS = {
+#     0: "name",
+#     1: "teacher",
+#     2: "first_quarter_grade",
+#     3: "second_quarter_grade",
+#     4: "first_exam_grade",
+#     5: "semester_grade_first",
+#     6: "third_quarter_grade",
+#     7: "fourth_quarter_grade",
+#     8: "second_exam_grade",
+#     9: ""
+
+# }
+
 
 def println():
     print("\n")
@@ -57,42 +76,6 @@ def cleanup_json(input: list, known_classes):
                 known_classes.append(object)
 
     return table_header
-
-
-def merge_data(input: list, table_headers):
-    # TODO: Redo this whole function to incorpate homework.Student.Course
-    """Merge the stored table header with the table contents to prepare an accurate dictionary. Returns a list containing dictionaries corresponding to the amount of classes given to the initial inputs."""
-    # Take two lists, merge them side by side into a dictionary
-    EMPTYHEADERS = {}
-    credit_count = 0
-    exam_count = 0
-    for element in table_headers:
-        if element == "Credit":
-            credit_count += 1
-            if credit_count > 1:
-                EMPTYHEADERS[element + str(credit_count)] = None
-        if element == "Exam":
-            exam_count += 1
-            if exam_count > 1:
-                EMPTYHEADERS[element + str(exam_count)] = None
-        if element == "":
-            # omit adding a false flag (do nothing)
-            continue
-        EMPTYHEADERS[element] = None
-        key = None
-
-    all_classes = []
-
-    for row in input:
-        temp_dict = EMPTYHEADERS.copy()
-        for index, element in enumerate(row):
-            try:
-                temp_dict[list(temp_dict)[index]] = element
-            except:
-                continue
-        all_classes.append(temp_dict)
-
-    return all_classes
 
 
 def isfloat(num) -> bool:  # thanks google!!!

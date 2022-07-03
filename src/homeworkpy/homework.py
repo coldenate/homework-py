@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from icalendar import Calendar
 from rich.console import Console
 from rich.table import Table
-from tools import cleanup_json, html_to_json, merge_data
+from tools import cleanup_json, html_to_json
 
 # TODO:
 # - Implement overwrites for syncing.
@@ -47,6 +47,62 @@ class ReportCard:
         self.known_classes = known_classes
         self.classes = classes
 
+    def merge_data(input: list, table_headers):
+        # TODO: Redo this whole function to incorpate homework.Student.Course
+        """ONLY FOR USE WITH THE RENWEB REPORT CARD TABLES | Merge the stored table header with the table contents to prepare an accurate dictionary.
+        Returns a list containing dictionaries corresponding to the amount of classes given to the initial inputs."""
+        # Take two lists, merge them side by side into a dictionary
+        EMPTYHEADERS = {}
+        credit_count = 0
+        exam_count = 0
+        for element in table_headers:
+            if element == "Credit":
+                credit_count += 1
+                if credit_count > 1:
+                    EMPTYHEADERS[element + str(credit_count)] = None
+            if element == "Exam":
+                exam_count += 1
+                if exam_count > 1:
+                    EMPTYHEADERS[element + str(exam_count)] = None
+            if element == "":
+                # omit adding a false flag (do nothing)
+                continue
+            EMPTYHEADERS[element] = None
+            key = None
+
+        all_classes = []
+
+        for row in input:
+            temp_dict = EMPTYHEADERS.copy()
+            for index, element in enumerate(row):
+                try:
+                    temp_dict[list(temp_dict)[index]] = element
+                except:
+                    continue
+            all_classes.append(temp_dict)
+
+        list_of_classes = []
+        for obj in all_classes:
+            # this loop iteration will be the umbrella over a single Course Object.
+            # we will match the keys of the dictionary to the course object attributes
+            course = Course(
+                name=obj["Subject"],
+                teacher=obj["Teacher"],
+                first_quarter_grade=obj["1st"],
+                second_quarter_grade=obj["2nd"],
+                first_exam_grade=obj["Exam"],
+                semester_grade_first=obj["Sem 1"],
+                credit_first_semester=obj["Credit"],
+                third_quarter_grade=obj["3rd"],
+                fourth_quarter_grade=obj["4th"],
+                second_exam_grade=obj["Exam2"],
+                semester_grade_second=obj["Sem 2"],
+                credit_second_semester=obj["Credit2"],
+            )
+            list_of_classes.append(course)
+
+        return list_of_classes
+
     def extract(self, html):
         """Extracts data from a report card (NOT TO BE USED OUTSIDE OF THIS LIBRARY)"""
         content_no_thead = html
@@ -55,7 +111,7 @@ class ReportCard:
 
         # print("cleaned up version")
         table_headers = cleanup_json(nothead, self.known_classes)
-        classDictonaries = merge_data(self.known_classes, table_headers)
+        classDictonaries = ReportCard.merge_data(self.known_classes, table_headers)
         self.classes = classDictonaries
         return classDictonaries
 
@@ -354,21 +410,19 @@ class Course(Student):
     def __init__(
         self,
         name: str = None,
-        description: str = None,
         teacher: str = None,
         first_quarter_grade: str | int = None,
         second_quarter_grade: str | int = None,
+        first_exam_grade: str | int = None,
+        semester_grade_first: str | int = None,
+        credit_first_semester: str | float = None,
         third_quarter_grade: str | int = None,
         fourth_quarter_grade: str | int = None,
-        first_exam_grade: str | int = None,
         second_exam_grade: str | int = None,
-        semester_grade_first: str | int = None,
         semester_grade_second: str | int = None,
-        credit_first_semester: str | float = None,
         credit_second_semester: str | float = None,
     ):
         self.name = name
-        self.description = description
         self.teacher = teacher
         self.first_quarter_grade = first_quarter_grade
         self.second_quarter_grade = second_quarter_grade
