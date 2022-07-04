@@ -1,3 +1,4 @@
+
 import homework  # importing the file that contains the objects. This is bound to change.
 from private import link, login_info
 
@@ -20,12 +21,15 @@ ns = homework.Student(
     renweb=True,
     renweb_link="src/homeworkpy/Renweb Report.html",
     renwebCredentials=login_info,
+    autoSync=True,
 )  # This is the creation of a Student object. It is assigned to "ns".
 #  The parameter is a link to the server that will *immediately* serve the ics file.
 
 
-ns.sync()
-print("Synced")
+# ns.sync()
+if ns.synced:
+
+    print("Synced")
 # this is the sync function. It will download the ics file from the link and parse it, and then it
 # will sync the student object's dictionary of homework with it. (Moreso appends)
 

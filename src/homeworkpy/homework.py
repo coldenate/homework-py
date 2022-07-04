@@ -45,7 +45,7 @@ class ReportCard:
         classes: dict = None,
     ):
         self.known_classes = known_classes
-        self.classes = classes
+        self.courses = classes
 
     def merge_data(input: list, table_headers):
         # TODO: Redo this whole function to incorpate homework.Student.Course
@@ -112,20 +112,28 @@ class ReportCard:
         # print("cleaned up version")
         table_headers = cleanup_json(nothead, self.known_classes)
         classDictonaries = ReportCard.merge_data(self.known_classes, table_headers)
-        self.classes = classDictonaries
+        self.courses = classDictonaries
         return classDictonaries
+
+    def extract_classes(self) -> dict:
+        """Extracts classes from a report card"""
+        student_Courses = {}
+        for course in self.courses:
+            student_Courses[course.name] = course
+
+        return student_Courses
 
 
 class Student:
     def __init__(
         self,
         name: str,
-        provider: dict,
+        providers: dict,
         # is_file: bool,
         email: str = None,
         works: list = [],
         report_card: ReportCard = None,
-        classes: list = [],
+        classes: dict = [],
         renweb: bool = False,
         renweb_link: str = None,
         renwebCredentials: dict = {
@@ -138,10 +146,11 @@ class Student:
         renwebDisctrictCode: str = None,
         renwebLoggedIn: bool = False,
         renwebCalendarSync: bool = False,
+        autoSync: bool = False,
     ):
         self.name = name
         self.email = email
-        self.providers = provider
+        self.providers = providers
         # self.providerIsFile = is_file
         self.works: list = works
         self.report_card: ReportCard = report_card
@@ -153,9 +162,20 @@ class Student:
         self.renwebSession = None
         self.renwebCalendarSync: bool = renwebCalendarSync
         self.renwebLoggedIn: bool = renwebLoggedIn
+        self.autoSync: bool = autoSync
+        self.synced: bool = False
 
         if self.renweb == True:
             self.renwebSession = requests.Session()
+
+        # <-----> Initialization Done <----->
+        if self.autoSync == True:
+            # very simple. We sync as soon as we initialize.
+            self.sync()
+            self.synced = True
+        if self.synced:
+            #  assume classes from renweb report card.
+            self.classes = self.report_card.extract_classes()
 
     def convert_to_dict(self, save_space: bool = False) -> dict:
         """Convert all attributes of student to dictionary, but if save_space is true, take it out of the dictionary.
