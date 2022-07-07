@@ -1,9 +1,8 @@
-
 import homework  # importing the file that contains the objects. This is bound to change.
-from private import link, login_info
+from private import link, link2, login_info
 
 LINK1 = link
-LINK2 = "insert your link"
+LINK2 = link2
 LINK3 = "insert your link"
 # Those are links to ics files. For now, ICS files are what we parse.
 
@@ -13,20 +12,20 @@ LINK3 = "insert your link"
 ns = homework.Student(
     "Note Salad",
     {
-        link: True,
-        # LINK2: False,
+        # link: True,
+        LINK2: False,
         # LINK3: False,
     },
     True,
     renweb=True,
     renweb_link="src/homeworkpy/Renweb Report.html",
     renwebCredentials=login_info,
-    autoSync=True,
+    autoSync=False,
 )  # This is the creation of a Student object. It is assigned to "ns".
 #  The parameter is a link to the server that will *immediately* serve the ics file.
 
 
-# ns.sync()
+ns.sync(rangetype=1)  # This is the sync function. It will sync the student object with its provided file providers.
 if ns.synced:
 
     print("Synced")
