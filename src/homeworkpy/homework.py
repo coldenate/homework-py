@@ -345,10 +345,10 @@ class Student:
             ranges = self.calculate_timeframe(6)
             events = recurring_ical_events.of(raw_works).between(ranges[0], ranges[1])
 
+        works = []
         if len(events) == 0:
-            return False
+            return works
         if len(events) > 0:
-            works = []
             for event in events:
                 try:
                     event_name = event["SUMMARY"]
@@ -370,15 +370,6 @@ class Student:
                 except:
                     event_description = "No Description"
 
-                    # description = event["DESCRIPTION"]
-                    # if description == None:
-                    #     description = "No description"
-                dict = {
-                    "event_name": event_name,
-                    "event_course": event_course,
-                    "event_starttime": starttime_formatted,
-                    "event_description": event_description,
-                }
                 work = Work(
                     name=f"{event_name}",
                     description=f"{event_description}",
@@ -424,6 +415,9 @@ class Student:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.renweb == True:
             self.import_card_from_renweb()
+
+        if self.synced == False:
+            self.synced = True
 
 
 class Course(Student):
