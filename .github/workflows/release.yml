@@ -1,16 +1,11 @@
 name: Create Release
 
-
 on:
-  push:
-    branches:
-      - main
-    tags:
-        - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
-        # Sequence of patterns matched against refs/tags
-      
-      # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    release:
+        types:
+            [created]
+            # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 jobs:
     autorelease:
@@ -52,12 +47,12 @@ jobs:
               run: |
                   PROJECT_VERSION=$(poetry version --short)
                   echo "PROJECT_VERSION=$PROJECT_VERSION" >> $GITHUB_ENV
-            - name: Check if tag version matches project version
-              run: |
-                  TAG=$(git describe HEAD --tags --abbrev=0)
-                  echo $TAG
-                  echo $PROJECT_VERSION
-                  if [[ "$TAG" != "v$PROJECT_VERSION" ]]; then exit 1; fi
+            # - name: Check if tag version matches project version
+            #   run: |
+            #       TAG=$(git describe HEAD --tags --abbrev=0)
+            #       echo $TAG
+            #       echo $PROJECT_VERSION
+            #       if [[ "$TAG" != "v$PROJECT_VERSION" ]]; then exit 1; fi
             - name: Cache dependencies
               id: cache-deps
               uses: actions/cache@v2.1.5
@@ -89,4 +84,5 @@ jobs:
                   PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
               run: |
                   poetry config pypi-token.pypi $PYPI_TOKEN
+                  poetry version $(git describe --tags --abbrev=0)
                   poetry publish --build

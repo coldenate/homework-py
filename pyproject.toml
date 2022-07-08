@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "homeworkpy"
-version = "0.1.0"
+version = "0.0.0"
 description = "An all-in-one pythonic student data representation solution."
 authors = ["Nathan Solis <66754842+colderinit@users.noreply.github.com>"]
 license = "MIT"
@@ -25,7 +25,7 @@ rich = {version = "12.4.4", allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 black = {version = "22.3.0", allow-prereleases = true}
-bumpver = "^2022.1118"
+# bumpver = "^2022.1118"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/colderinit/homeworkpy/issues"
@@ -35,20 +35,20 @@ bumpver = "^2022.1118"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.bumpver]
-current_version = "0.1.0"
-version_pattern = "MAJOR.MINOR.PATCH"
-commit_message = "bump version {old_version} -> {new_version}"
-commit = true
-tag = true
-push = false
+# [tool.bumpver]
+# current_version = "0.1.0"
+# version_pattern = "MAJOR.MINOR.PATCH"
+# commit_message = "bump version {old_version} -> {new_version}"
+# commit = true
+# tag = true
+# push = false
 
-[tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-]
-"README.md" = [
-    "{version}",
-    "{pep440_version}",
-]
+# [tool.bumpver.file_patterns]
+# "pyproject.toml" = [
+#     'current_version = "{version}"',
+# ]
+# "README.md" = [
+#     "{version}",
+#     "{pep440_version}",
+# ]
 
