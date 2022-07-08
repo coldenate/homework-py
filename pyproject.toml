@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "homework.py"
+version = "0.1.0"
+authors = [
+  { name="Nathan Solis", email="airship.magical_0a@icloud.com" },
+]
+description = "An all-in-one pythonic student data representation solution."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/colderinit/homework-py"
+"Bug Tracker" = "https://github.com/colderinit/homework-py/issues"
