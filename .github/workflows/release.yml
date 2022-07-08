@@ -1,0 +1,88 @@
+on:
+    push:
+      branches: [ "main" ]
+        # Sequence of patterns matched against refs/tags
+        tags:
+            - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+name: Create Release
+
+jobs:
+    autorelease:
+        name: Create Release
+        runs-on: "ubuntu-latest"
+        strategy:
+            matrix:
+                os:
+                    - "ubuntu-latest"
+                    - "macos-latest"
+                    - "windows-latest"
+                python-version:
+                    - "3.10"
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Cache Poetry
+              id: cache-poetry
+              uses: actions/cache@v2.1.5
+              with:
+                  path: ~/.poetry
+                  key: ${{ matrix.os }}-poetry
+            # Only runs when key from caching step changes
+            - name: Install latest version of Poetry
+              if: steps.cache-poetry.outputs.cache-hit != 'true'
+              run: |
+                  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+            # Poetry still needs to be re-prepended to the PATH on each run, since
+            # PATH does not persist between runs.
+            - name: Add Poetry to $PATH
+              run: |
+                  echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+            - name: Get Poetry version
+              run: poetry --version
+            - name: Add version to environment vars
+              run: |
+                  PROJECT_VERSION=$(poetry version --short)
+                  echo "PROJECT_VERSION=$PROJECT_VERSION" >> $GITHUB_ENV
+            - name: Check if tag version matches project version
+              run: |
+                  TAG=$(git describe HEAD --tags --abbrev=0)
+                  echo $TAG
+                  echo $PROJECT_VERSION
+                  if [[ "$TAG" != "v$PROJECT_VERSION" ]]; then exit 1; fi
+            - name: Cache dependencies
+              id: cache-deps
+              uses: actions/cache@v2.1.5
+              with:
+                  path: ${{github.workspace}}/.venv
+                  key: ${{ matrix.os }}-${{ hashFiles('**/poetry.lock') }}
+                  restore-keys: ${{ matrix.os }}-
+            - name: Install deps
+              if: steps.cache-deps.cache-hit != 'true'
+              run: |
+                  poetry config virtualenvs.in-project true
+                  poetry install --no-interaction
+            #     - name: Run tests
+            #       run: poetry run pytest -v
+            - name: Build artifacts
+              run: poetry build
+            - name: Create Release Draft
+              uses: softprops/action-gh-release@v1
+              with:
+                  # body_path: ".github/RELEASE-TEMPLATE.md"
+                  draft: true
+                  files: |
+                      dist/random_standup-${{env.PROJECT_VERSION}}-py3-none-any.whl
+                      dist/random-standup-${{env.PROJECT_VERSION}}.tar.gz
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Publish to PyPI
+              env:
+                  PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+              run: |
+                  poetry config pypi-token.pypi $PYPI_TOKEN
+                  poetry publish --build
