@@ -128,8 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 mentor.py
-src/homework/private.py
-src/homework/icalexport (1).ics
-src/homework/experiments.py
-src/homework/Renweb Report.html
-src/homework/Harvest Christian Academy - Report Card.html
+src/homeworkpy/private.py
+src/homeworkpy/icalexport (1).ics
+src/homeworkpy/experiments.py
+src/homeworkpy/Renweb Report.html
+src/homeworkpy/Harvest Christian Academy - Report Card.html

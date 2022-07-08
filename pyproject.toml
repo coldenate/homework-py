@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "homework.py"
+name = "homeworkpy"
 version = "0.1.0"
 authors = [
   { name="Nathan Solis", email="airship.magical_0a@icloud.com" },
