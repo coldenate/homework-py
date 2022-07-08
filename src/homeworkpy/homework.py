@@ -17,26 +17,6 @@ from rich.table import Table
 from .tools import cleanup_json, html_to_json
 
 # TODO:
-# -  (toggleable) Auto syncing on class init
-# -  infer missing data from auto sync
-#  - block auto sync error throws
-#  - Implement a versatile calendar range system.
-
-
-@cache
-def fetch_calendar(src: str, is_file: bool = False):
-    """Fetches calendar file from url,
-    :param: is_file | uses a file opener instead of a link"""
-    if is_file == False:
-        file = urllib.request.urlopen(src)
-        # return x
-        raw_works = Calendar.from_ical(file.read())
-        return raw_works
-    if is_file == True:
-        file = open(src, "r")
-        # return file
-        raw_works = Calendar.from_ical(file.read())
-        return raw_works
 
 
 class ReportCard:
@@ -132,7 +112,7 @@ class Student:
         providers: dict,
         # is_file: bool,
         email: str = None,
-        works: list = [],
+        assignments: list = [],
         report_card: ReportCard = None,
         classes: dict = [],
         renweb: bool = False,
@@ -153,7 +133,7 @@ class Student:
         self.email = email
         self.providers = providers
         # self.providerIsFile = is_file
-        self.works: list = works
+        self.assignments: list = assignments
         self.report_card: ReportCard = report_card
         self.classes = classes
         self.renweb = renweb
@@ -178,24 +158,24 @@ class Student:
             #  assume classes from renweb report card.
             self.classes = self.report_card.extract_classes()
 
-    def convert_to_dict(self, save_space: bool = False) -> dict:
+    def convert_to_dict(self, omit_assignments: bool = False) -> dict:
         """Convert all attributes of student to dictionary, but if save_space is true, take it out of the dictionary.
-        :param save_space: If True, the dictionary will omit any works to save space. This is great for databases."""
-        if save_space:
+        :param save_space: If True, the dictionary will omit any assignments to save space. This is great for databases."""
+        if omit_assignments:
             return {
                 "name": self.name,
                 "email": self.email,
                 "provider": self.providers,
             }
-        if save_space == False:
-            works = []
-            for work in self.works:
-                works.append(work.convert_to_dict())
+        if omit_assignments == False:
+            assignments = []
+            for assignment in self.assignments:
+                assignments.append(assignment.convert_to_dict())
             return {
                 "name": self.name,
                 "email": self.email,
                 "provider": self.providers,
-                "works": works,
+                "assignments": assignments,
             }
 
     def renwebLogin(self) -> requests.Session:
@@ -291,15 +271,15 @@ class Student:
             ranges.append(self.datetime_to_tuple(raw_end_time))
             return ranges
 
-    def cli_display_works(self):
-        """display all works in a table view using rich library"""
-        table = Table(title=f"{self.name}'s Works")
+    def print_assignments(self):
+        """display all assignments in a table view using rich library"""
+        table = Table(title=f"{self.name}'s assignments")
         table.add_column("Name")
         table.add_column("Description")
         table.add_column("Due Date")
         table.add_column("course")
-        for work in self.works:
-            table.add_row(work.title, work.description, work.due_date, work.course.name)
+        for assignment in self.assignments:
+            table.add_row(assignment.title, assignment.description, assignment.due_date, assignment.course.name)
         console = Console()
         console.print(table)
 
@@ -314,41 +294,55 @@ class Student:
         """This function is designed to be iterable.
         NOT TO BE USED OUTSIDE OF LIBRARY"""
         try:
-            # raw_works = Calendar.from_ical(fetch_calendar(self.provider).read())
+            # raw_assignments = Calendar.from_ical(fetch_calendar(self.provider).read())
             # this is the main kicker, or the ol can o' beans. It throws around the calendar file
-            raw_works = fetch_calendar(link, is_file=isFile)
+            unprocessed_assignments = fetch_calendar(link, is_file=isFile)
         except:
             print(
-                "Error fetching raw works. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
+                "Error fetching raw assignments. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
             )
-            raw_works = None
+            unprocessed_assignments = None
 
         if range_start is None and range_end is None or rangetype == 0:
-            events = recurring_ical_events.of(raw_works).all()
+            events = recurring_ical_events.of(unprocessed_assignments).all()
         if range_start is not None and range_end is not None:
-            events = recurring_ical_events.of(raw_works).between(range_start, range_end)
+            events = recurring_ical_events.of(unprocessed_assignments).between(
+                range_start, range_end
+            )
         if rangetype == 0:
-            events = recurring_ical_events.of(raw_works).all()
+            events = recurring_ical_events.of(unprocessed_assignments).all()
         if rangetype == 1:
-            events = recurring_ical_events.of(raw_works).at(self.calculate_timeframe(1))
+            events = recurring_ical_events.of(unprocessed_assignments).at(
+                self.calculate_timeframe(1)
+            )
         if rangetype == 2:
-            events = recurring_ical_events.of(raw_works).at(self.calculate_timeframe(2))
+            events = recurring_ical_events.of(unprocessed_assignments).at(
+                self.calculate_timeframe(2)
+            )
         if rangetype == 3:
             ranges = self.calculate_timeframe(3)
-            events = recurring_ical_events.of(raw_works).between(ranges[0], ranges[1])
+            events = recurring_ical_events.of(unprocessed_assignments).between(
+                ranges[0], ranges[1]
+            )
         if rangetype == 4:
             ranges = self.calculate_timeframe(4)
-            events = recurring_ical_events.of(raw_works).between(ranges[0], ranges[1])
+            events = recurring_ical_events.of(unprocessed_assignments).between(
+                ranges[0], ranges[1]
+            )
         if rangetype == 5:
             ranges = self.calculate_timeframe(5)
-            events = recurring_ical_events.of(raw_works).between(ranges[0], ranges[1])
+            events = recurring_ical_events.of(unprocessed_assignments).between(
+                ranges[0], ranges[1]
+            )
         if rangetype == 6:
             ranges = self.calculate_timeframe(6)
-            events = recurring_ical_events.of(raw_works).between(ranges[0], ranges[1])
+            events = recurring_ical_events.of(unprocessed_assignments).between(
+                ranges[0], ranges[1]
+            )
 
-        works = []
+        assignments = []
         if len(events) == 0:
-            return works
+            return assignments
         if len(events) > 0:
             for event in events:
                 try:
@@ -371,14 +365,14 @@ class Student:
                 except:
                     event_description = "No Description"
 
-                work = Work(
+                assignment = Assignment(
                     name=f"{event_name}",
                     description=f"{event_description}",
                     due_date=f"{starttime_formatted}",
                     course=Course(name=f"{event_course}"),
                 )
-                works.append(work)
-            return works
+                assignments.append(assignment)
+            return assignments
 
     def sync(
         self,
@@ -386,32 +380,32 @@ class Student:
         range_end: tuple = None,
         rangetype: int = None,
     ):
-        """Function syncs Works Object type with cloud calendar file provider
+        """Function syncs assignments Object type with cloud calendar file provider
         :param provider: url of calendar file provider
         :param range_start: tuple of start date ex. (2020, 1, 2) --> (year, month, day)
         :param range_end: tuple of end date
         :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING CALENDARS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        listofworks = []
+        listofassignments = []
         for provider in self.providers:
             # x = self.providers[provider]
-            returned_works = self.process_append_ical_file(
+            returned_assignments = self.process_append_ical_file(
                 provider,
                 range_start,
                 range_end,
                 rangetype,
                 isFile=self.providers[provider],
             )
-            listofworks.append(returned_works)
+            listofassignments.append(returned_assignments)
 
         final_export = []
-        for seto in listofworks:
-            for work in seto:
+        for seto in listofassignments:
+            for assignment in seto:
                 final_export.append(
-                    work
+                    assignment
                 )  # we iterate through each individual event, and append it to an exportable list.
-                # then we replace the object's works attribute with that.
-        self.works = final_export
+                # then we replace the object's assignments attribute with that.
+        self.assignments = final_export
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.renweb == True:
@@ -450,16 +444,15 @@ class Course(Student):
         self.credit_first_semester = credit_first_semester
         self.credit_second_semester = credit_second_semester
 
-    pass
 
-
-class Work(Student):
+class Assignment(Student):
     def __init__(
         self,
         name: str,
         description: str,
         due_date: dt.datetime,
         course: Course,
+        isHomework: bool = None,
         point_weight: int = None,
         completed: bool = False,
         grade: float = None,
@@ -473,9 +466,10 @@ class Work(Student):
         self.completed = completed
         self.grade = grade
         self.teacher = teacher
+        self.isHomework = isHomework
 
     def convert_to_dict(self) -> dict:
-        """convert each work into a dictionary"""
+        """convert each assignment into a dictionary"""
         return {
             "title": self.title,
             "description": self.description,
@@ -486,3 +480,19 @@ class Work(Student):
             "grade": self.grade,
             "teacher": self.teacher,
         }
+
+
+@cache
+def fetch_calendar(src: str, is_file: bool = False):
+    """Fetches calendar file from url,
+    :param: is_file | uses a file opener instead of a link"""
+    if is_file == False:
+        file = urllib.request.urlopen(src)
+        # return x
+        raw_assignments = Calendar.from_ical(file.read())
+        return raw_assignments
+    if is_file == True:
+        file = open(src, "r")
+        # return file
+        raw_assignments = Calendar.from_ical(file.read())
+        return raw_assignments
