@@ -279,7 +279,12 @@ class Student:
         table.add_column("Due Date")
         table.add_column("course")
         for assignment in self.assignments:
-            table.add_row(assignment.title, assignment.description, assignment.due_date, assignment.course.name)
+            table.add_row(
+                assignment.title,
+                assignment.description,
+                assignment.due_date,
+                assignment.course.name,
+            )
         console = Console()
         console.print(table)
 

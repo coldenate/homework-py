@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 # due to circular imports, this file may never import homework
 
 
-
 def println():
     print("\n")
 
@@ -14,7 +13,7 @@ def html_to_json(
     content,
     indent=None,
 ):
-    """Convert HTML Tables to json, SOUP VAR IS A BEUTFIALTULSJN SOUP OBJKECT"""
+    """Convert HTML Tables to json"""
     soup = BeautifulSoup(content, "html.parser")
     rows = soup.find_all("tr")
 
