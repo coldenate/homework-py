@@ -13,7 +13,8 @@ from bs4 import BeautifulSoup
 from icalendar import Calendar
 from rich.console import Console
 from rich.table import Table
-from tools import cleanup_json, html_to_json
+
+from .tools import cleanup_json, html_to_json
 
 # TODO:
 # -  (toggleable) Auto syncing on class init

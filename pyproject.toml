@@ -1,23 +1,54 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
+[tool.poetry]
 name = "homeworkpy"
 version = "0.1.0"
-authors = [
-  { name="Nathan Solis", email="airship.magical_0a@icloud.com" },
-]
 description = "An all-in-one pythonic student data representation solution."
+authors = ["Nathan Solis <66754842+colderinit@users.noreply.github.com>"]
+license = "MIT"
 readme = "README.md"
-license = { file="LICENSE" }
-requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+homepage = "https://colderinit.github.io/homeworkpy"
+repository = "https://github.com/colderinit/homeworkpy"
+keywords = ["homework", "student", "data", "representation"]
+# packages = [
+#     { include = "my_package" },
+#     { include = "extra_package/**/*.py" },
+# { include = "my_package", from = "lib" },
+# ]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+beautifulsoup4 = {version = "4.11.1", allow-prereleases = true}
+recurring-ical-events = {version = "1.0.2b0", allow-prereleases = true}
+requests = {version = "2.28.0", allow-prereleases = true}
+rich = {version = "12.4.4", allow-prereleases = true}
+
+
+
+[tool.poetry.dev-dependencies]
+black = {version = "22.3.0", allow-prereleases = true}
+bumpver = "^2022.1118"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/colderinit/homeworkpy/issues"
+"Documentation" = "https://colderinit.github.io/homeworkpy/docs"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.bumpver]
+current_version = "0.1.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/colderinit/homework-py"
-"Bug Tracker" = "https://github.com/colderinit/homework-py/issues"
