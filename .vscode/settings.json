@@ -1,0 +1,17 @@
+{
+	"python.analysis.extraPaths": [
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python Projects\\Brother\\Suffragium-Fraterna",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python Projects\\Brother\\Suffragium-Fraterna\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Main Stream Projects\\Brother\\Suffragium-Fraterna\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Clack\\ClackBotWebsite\\clackbot-website",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Clack\\ClackBot\\ClackBot\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Clack\\ClackBot\\ClackBot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Clack\\ClackBot\\ClackBot\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot_application",
+		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot_application\\bot",
+		"./src/homeworkpy"
+	]
+}

@@ -130,6 +130,7 @@ dmypy.json
 mentor.py
 src/homeworkpy/private.py
 src/homeworkpy/icalexport (1).ics
-src/homeworkpy/experiments.py
 src/homeworkpy/Renweb Report.html
 src/homeworkpy/Harvest Christian Academy - Report Card.html
+# src/homeworkpy/homework_test.py/
+homework_test.py

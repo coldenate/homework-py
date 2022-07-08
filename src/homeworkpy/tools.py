@@ -5,23 +5,6 @@ from bs4 import BeautifulSoup
 # due to circular imports, this file may never import homework
 
 
-# Known translations for Report Card data to subject.
-
-# KNOWN_TRANSLATIONS = {
-#     0: "name",
-#     1: "teacher",
-#     2: "first_quarter_grade",
-#     3: "second_quarter_grade",
-#     4: "first_exam_grade",
-#     5: "semester_grade_first",
-#     6: "third_quarter_grade",
-#     7: "fourth_quarter_grade",
-#     8: "second_exam_grade",
-#     9: ""
-
-# }
-
-
 def println():
     print("\n")
 
@@ -30,7 +13,7 @@ def html_to_json(
     content,
     indent=None,
 ):
-    """Convert HTML Tables to json, SOUP VAR IS A BEUTFIALTULSJN SOUP OBJKECT"""
+    """Convert HTML Tables to json"""
     soup = BeautifulSoup(content, "html.parser")
     rows = soup.find_all("tr")
 
