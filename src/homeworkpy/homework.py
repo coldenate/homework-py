@@ -154,7 +154,7 @@ class Student:
             # very simple. We sync as soon as we initialize.
             self.sync()
             self.synced = True
-        if self.synced:
+        if self.synced and self.report_card != None:
             #  assume classes from renweb report card.
             self.classes = self.report_card.extract_classes()
 
