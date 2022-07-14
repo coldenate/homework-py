@@ -5,8 +5,8 @@ description = "An all-in-one pythonic student data representation solution."
 authors = ["Nathan Solis <66754842+colderinit@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://colderinit.github.io/homeworkpy"
-repository = "https://github.com/colderinit/homeworkpy"
+homepage = "https://colderinit.github.io/homework-py"
+repository = "https://github.com/colderinit/homework-py"
 keywords = ["homework", "student", "data", "representation"]
 # packages = [
 #     { include = "my_package" },
@@ -28,8 +28,8 @@ black = {version = "22.3.0", allow-prereleases = true}
 # bumpver = "^2022.1118"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/colderinit/homeworkpy/issues"
-"Documentation" = "https://colderinit.github.io/homeworkpy/docs"
+"Bug Tracker" = "https://github.com/colderinit/homework-py/issues"
+"Documentation" = "https://colderinit.github.io/homework-py/docs"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
