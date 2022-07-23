@@ -16,10 +16,9 @@ from rich.table import Table
 
 from .tools import cleanup_json, html_to_json
 
-# TODO:
-
 
 class ReportCard:
+    """Object representing an instance of a Student's report card at a given time."""
     def __init__(
         self,
         known_classes: list = [],
