@@ -11,6 +11,7 @@ import recurring_ical_events
 import requests
 from bs4 import BeautifulSoup
 from icalendar import Calendar
+from requests.exceptions import MissingSchema
 from rich.console import Console
 from rich.table import Table
 
@@ -19,45 +20,49 @@ from .tools import cleanup_json, html_to_json
 
 class ReportCard:
     """Object representing an instance of a Student's report card at a given time."""
+
     def __init__(
         self,
-        known_classes: list = [],
+        known_classes: list = None,
         classes: dict = None,
     ):
         self.known_classes = known_classes
         self.courses = classes
+        if self.known_classes is None:
+            self.known_classes = []
 
-    def merge_data(input: list, table_headers):
-        # TODO: Redo this whole function to incorpate homework.Student.Course
-        """ONLY FOR USE WITH THE RENWEB REPORT CARD TABLES | Merge the stored table header with the table contents to prepare an accurate dictionary.
-        Returns a list containing dictionaries corresponding to the amount of classes given to the initial inputs."""
+    def merge_data(self, data: list, table_headers):
+
+        """ONLY FOR USE WITH THE RENWEB REPORT CARD TABLES |
+        Merge the stored table header with the table contents to prepare an accurate dictionary.
+        Returns a list containing dictionaries corresponding to the amount of
+        classes given to the initial inputs."""
         # Take two lists, merge them side by side into a dictionary
-        EMPTYHEADERS = {}
+        EMPTY_HEADERS = {}
         credit_count = 0
         exam_count = 0
         for element in table_headers:
             if element == "Credit":
                 credit_count += 1
                 if credit_count > 1:
-                    EMPTYHEADERS[element + str(credit_count)] = None
+                    EMPTY_HEADERS[element + str(credit_count)] = None
             if element == "Exam":
                 exam_count += 1
                 if exam_count > 1:
-                    EMPTYHEADERS[element + str(exam_count)] = None
+                    EMPTY_HEADERS[element + str(exam_count)] = None
             if element == "":
                 # omit adding a false flag (do nothing)
                 continue
-            EMPTYHEADERS[element] = None
-            key = None
+            EMPTY_HEADERS[element] = None
 
         all_classes = []
 
-        for row in input:
-            temp_dict = EMPTYHEADERS.copy()
+        for row in data:
+            temp_dict = EMPTY_HEADERS.copy()
             for index, element in enumerate(row):
                 try:
                     temp_dict[list(temp_dict)[index]] = element
-                except:
+                except IndexError:
                     continue
             all_classes.append(temp_dict)
 
@@ -91,42 +96,40 @@ class ReportCard:
 
         # print("cleaned up version")
         table_headers = cleanup_json(nothead, self.known_classes)
-        classDictonaries = ReportCard.merge_data(self.known_classes, table_headers)
-        self.courses = classDictonaries
-        return classDictonaries
+        class_dictionaries = self.merge_data(
+            data=self.known_classes, table_headers=table_headers
+        )
+        self.courses = class_dictionaries
+        return class_dictionaries
 
     def extract_classes(self) -> dict:
         """Extracts classes from a report card"""
-        student_Courses = {}
+        student_courses = {}
         for course in self.courses:
-            student_Courses[course.name] = course
+            student_courses[course.name] = course
 
-        return student_Courses
+        return student_courses
 
 
 class Student:
+    """Object representing an individual student with data."""
+
     def __init__(
         self,
         name: str,
         providers: dict,
         # is_file: bool,
         email: str = None,
-        assignments: list = [],
+        assignments: list = None,
         report_card: ReportCard = None,
-        classes: dict = [],
+        classes: dict = None,
         renweb: bool = False,
         renweb_link: str = None,
-        renwebCredentials: dict = {
-            "DistrictCode": None,
-            "username": None,
-            "password": None,
-            "UserType": "PARENTSWEB-STUDENT",  # I think this will break across different renweb sites...
-            "login": "Log+In",
-        },
-        renwebDisctrictCode: str = None,
-        renwebLoggedIn: bool = False,
-        renwebCalendarSync: bool = False,
-        autoSync: bool = False,
+        renweb_credentials: dict = None,
+        renweb_district_code: str = None,
+        renweb_logged_in: bool = False,
+        renweb_calendar_sync: bool = False,
+        auto_sync: bool = False,
     ):
         self.name = name
         self.email = email
@@ -137,19 +140,33 @@ class Student:
         self.classes = classes
         self.renweb = renweb
         self.renweb_link: self = renweb_link
-        self.renwebCredentials: dict = renwebCredentials
-        self.renwebDisctrictCode: str = renwebDisctrictCode
-        self.renwebSession = None
-        self.renwebCalendarSync: bool = renwebCalendarSync
-        self.renwebLoggedIn: bool = renwebLoggedIn
-        self.autoSync: bool = autoSync
+        self.renweb_credentials: dict = renweb_credentials
+        self.renweb_district_code: str = renweb_district_code
+        self.renweb_session = None
+        self.renweb_calendar_sync: bool = renweb_calendar_sync
+        self.renweb_logged_in: bool = renweb_logged_in
+        self.auto_sync: bool = auto_sync
         self.synced: bool = False
 
+        if self.renweb_credentials is None:
+            self.renweb_credentials = {
+                "DistrictCode": None,
+                "username": None,
+                "password": None,
+                "UserType": "PARENTSWEB-STUDENT",  # I think this will break across different renweb sites...
+                "login": "Log+In",
+            }
+
+        if self.assignments is None:
+            self.assignments = []
+        if self.classes is None:
+            self.classes = {}
+
         if self.renweb == True:
-            self.renwebSession = requests.Session()
+            self.renweb_session = requests.Session()
 
         # <-----> Initialization Done <----->
-        if self.autoSync == True:
+        if self.auto_sync == True:
             # very simple. We sync as soon as we initialize.
             self.sync()
             self.synced = True
@@ -181,19 +198,19 @@ class Student:
         """Logs into the renweb website"""
         try:
 
-            login_info = self.renwebSession.post(
-                self.renweb_link + "/pwr/index.cfm", data=self.renwebCredentials
+            self.renweb_session.post(
+                self.renweb_link + "/pwr/index.cfm", data=self.renweb_credentials
             )
-            self.renwebLoggedIn = True
+            self.renweb_logged_in = True
         except requests.exceptions.MissingSchema:
             print("Failed to authenticate with Renweb Servers")
 
     def import_card_from_renweb(self):
 
-        if self.renwebLoggedIn != True:
+        if self.renweb_logged_in != True:
             self.renwebLogin()
         try:
-            reportCardMain = self.renwebSession.get(
+            reportCardMain = self.renweb_session.get(
                 self.renweb_link + "/pwr/student/report-card.cfm"
             )
 
@@ -202,32 +219,35 @@ class Student:
 
             reportCardLocation = NASReportCardElement[0].attrs["src"]
 
-            report_card_request = self.renwebSession.get(
+            report_card_request = self.renweb_session.get(
                 self.renweb_link + reportCardLocation
             )
             reportCardHTML = report_card_request.content
 
-        except Exception as e:
-            print(e)
+        except MissingSchema as error:
+            print("HEEHEE HAAA")
+            print(error)
             # Open local file
-            report_card_request = open(self.renweb_link, "r").read()
+            report_card_request = open(self.renweb_link, "r", encoding="utf-8").read()
+
             reportCardHTML = report_card_request
 
         self.report_card = ReportCard()
 
         self.report_card.extract(reportCardHTML)
 
-        self.renwebSession.close()
+        self.renweb_session.close()
 
-    def some_random_calc(self):
-        stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
-        yesterday = stt.strftime("%Y, %m, %d")
-        fourtdayslater = dt.date.today() + dt.timedelta(days=14)
-        truefourt = fourtdayslater.strftime("%Y, %m, %d")
-        start_date = tuple(map(int, yesterday.split(", ")))
-        end_date = tuple(map(int, truefourt.split(", ")))
+    # def some_random_calc(self):
+    #     stt = dt.date.today() - dt.timedelta(days=1)  # yesterday
+    #     yesterday = stt.strftime("%Y, %m, %d")
+    #     fourtdayslater = dt.date.today() + dt.timedelta(days=14)
+    #     truefourt = fourtdayslater.strftime("%Y, %m, %d")
+    #     start_date = tuple(map(int, yesterday.split(", ")))
+    #     end_date = tuple(map(int, truefourt.split(", ")))
 
     def datetime_to_tuple(self, datetime: dt.datetime) -> tuple:
+        """Converts datetime objects to tuple for use in renweb calendar"""
         un_tupled_start_date = datetime.strftime("%Y, %m, %d")
         start_date = tuple(map(int, un_tupled_start_date.split(", ")))
         return start_date
@@ -293,15 +313,15 @@ class Student:
         range_start: tuple,
         range_end: tuple,
         rangetype: int,
-        isFile: bool,
+        is_file: bool,
     ):
         """This function is designed to be iterable.
         NOT TO BE USED OUTSIDE OF LIBRARY"""
         try:
             # raw_assignments = Calendar.from_ical(fetch_calendar(self.provider).read())
             # this is the main kicker, or the ol can o' beans. It throws around the calendar file
-            unprocessed_assignments = fetch_calendar(link, is_file=isFile)
-        except:
+            unprocessed_assignments = fetch_calendar(link, is_file=is_file)
+        except FileNotFoundError:
             print(
                 "Error fetching raw assignments. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
             )
@@ -351,22 +371,22 @@ class Student:
             for event in events:
                 try:
                     event_name = event["SUMMARY"]
-                except:
+                except KeyError:
                     event_name = "No Title"
                 try:
                     event_course = event["CATEGORIES"].cats[
                         0
                     ]  # the first category found
-                except:
+                except KeyError:
                     event_course = "No course"
                 try:
                     event_starttime = event["DTSTART"].dt
                     starttime_formatted = event_starttime.strftime("%B %d, %Y")
-                except:
+                except KeyError:
                     event_starttime = "No Start Time"
                 try:
                     event_description = event["DESCRIPTION"]
-                except:
+                except KeyError:
                     event_description = "No Description"
 
                 assignment = Assignment(
@@ -398,7 +418,7 @@ class Student:
                 range_start,
                 range_end,
                 rangetype,
-                isFile=self.providers[provider],
+                is_file=self.providers[provider],
             )
             listofassignments.append(returned_assignments)
 
@@ -419,7 +439,7 @@ class Student:
             self.synced = True
 
 
-class Course(Student):
+class Course():
     def __init__(
         self,
         name: str = None,
@@ -449,7 +469,7 @@ class Course(Student):
         self.credit_second_semester = credit_second_semester
 
 
-class Assignment(Student):
+class Assignment():
     def __init__(
         self,
         name: str,
@@ -496,7 +516,7 @@ def fetch_calendar(src: str, is_file: bool = False):
         raw_assignments = Calendar.from_ical(file.read())
         return raw_assignments
     if is_file == True:
-        file = open(src, "r")
+        file = open(src, "r", encoding="utf-8")
         # return file
         raw_assignments = Calendar.from_ical(file.read())
         return raw_assignments

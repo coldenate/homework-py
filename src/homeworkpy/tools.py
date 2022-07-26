@@ -1,3 +1,5 @@
+"""A surplus of functions that can be used as builtin tools throughout
+the library without interfering with the actual classes."""
 import json
 
 from bs4 import BeautifulSoup
@@ -6,6 +8,7 @@ from bs4 import BeautifulSoup
 
 
 def println():
+    """A quick little print line function that I loved from c++"""
     print("\n")
 
 
@@ -38,30 +41,34 @@ def html_to_json(
     return json.dumps(data, indent=indent)
 
 
-def cleanup_json(input: list, known_classes):
-    """This function will attempt to remove any unnecessary data from the rendered DOM of a Report Card. This targeted data is traditionally created from the use of empty characters. returns table_headers if found"""
+def cleanup_json(input_data: list, known_classes):
+    """This function will attempt to remove any unnecessary data from the rendered
+    DOM of a Report Card.
+    This targeted data is traditionally created from the use of empty characters.
+    returns table_headers if found"""
 
     # Find the subject
     table_header = None
     subject_found: int = None
-    for index, object in enumerate(input):
-        if object[0] == "Subject":
+    for index, data_object in enumerate(input_data):
+        if data_object[0] == "Subject":
             # we canc onclude that this is the false header
             subject_found = index
 
-            table_header = object
+            table_header = data_object
 
     #  Locate all the grades
-    for index, object in enumerate(input):
+    for index, data_object in enumerate(input_data):
         if index > subject_found:
             # we dont need it to be >= because we want to avoid appending the table key
-            if len(object[0]) > 4 and len(object[0]) < 50:
-                known_classes.append(object)
+            if len(data_object[0]) > 4 and len(data_object[0]) < 50:
+                known_classes.append(data_object)
 
     return table_header
 
 
-def isfloat(num) -> bool:  # thanks google!!!
+def isfloat(num) -> bool:
+    """check if the given number is a float type"""  # thanks google!!!
     try:
         float(num)
         return True
@@ -89,7 +96,7 @@ def get_index_positions(list_of_elems, element):  # thanks stack overflow!!!
             # Add the index position in list
             index_pos_list.append(index_pos)
             index_pos += 1
-        except ValueError as e:
+        except ValueError:
             break
     return index_pos_list
 
@@ -107,9 +114,9 @@ def cluster(data, maxgap):  # thanks stack overflow!!!
     """
     data.sort()
     groups = [[data[0]]]
-    for x in data[1:]:
-        if abs(x - groups[-1][-1]) <= maxgap:
-            groups[-1].append(x)
+    for i in data[1:]:
+        if abs(i - groups[-1][-1]) <= maxgap:
+            groups[-1].append(i)
         else:
-            groups.append([x])
+            groups.append([i])
     return groups
