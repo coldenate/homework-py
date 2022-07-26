@@ -38,27 +38,27 @@ class ReportCard:
         Returns a list containing dictionaries corresponding to the amount of
         classes given to the initial inputs."""
         # Take two lists, merge them side by side into a dictionary
-        EMPTY_HEADERS = {}
+        empty_headers = {}  # usually empty
         credit_count = 0
         exam_count = 0
         for element in table_headers:
             if element == "Credit":
                 credit_count += 1
                 if credit_count > 1:
-                    EMPTY_HEADERS[element + str(credit_count)] = None
+                    empty_headers[element + str(credit_count)] = None
             if element == "Exam":
                 exam_count += 1
                 if exam_count > 1:
-                    EMPTY_HEADERS[element + str(exam_count)] = None
+                    empty_headers[element + str(exam_count)] = None
             if element == "":
                 # omit adding a false flag (do nothing)
                 continue
-            EMPTY_HEADERS[element] = None
+            empty_headers[element] = None
 
         all_classes = []
 
         for row in data:
-            temp_dict = EMPTY_HEADERS.copy()
+            temp_dict = empty_headers.copy()
             for index, element in enumerate(row):
                 try:
                     temp_dict[list(temp_dict)[index]] = element
@@ -153,7 +153,7 @@ class Student:
                 "DistrictCode": None,
                 "username": None,
                 "password": None,
-                "UserType": "PARENTSWEB-STUDENT",  # I think this will break across different renweb sites...
+                "UserType": "PARENTSWEB-STUDENT",  # broken across sites
                 "login": "Log+In",
             }
 
@@ -162,28 +162,30 @@ class Student:
         if self.classes is None:
             self.classes = {}
 
-        if self.renweb == True:
+        if self.renweb is True:
             self.renweb_session = requests.Session()
 
         # <-----> Initialization Done <----->
-        if self.auto_sync == True:
+        if self.auto_sync is True:
             # very simple. We sync as soon as we initialize.
             self.sync()
             self.synced = True
-        if self.synced and self.report_card != None:
+        if self.synced and self.report_card is not None:
             #  assume classes from renweb report card.
             self.classes = self.report_card.extract_classes()
 
     def convert_to_dict(self, omit_assignments: bool = False) -> dict:
-        """Convert all attributes of student to dictionary, but if save_space is true, take it out of the dictionary.
-        :param save_space: If True, the dictionary will omit any assignments to save space. This is great for databases."""
+        """Convert all attributes of student to dictionary,
+        but if save_space is true, take it out of the dictionary.
+        :param save_space: If True, the dictionary will omit
+        any assignments to save space. This is great for databases."""
         if omit_assignments:
             return {
                 "name": self.name,
                 "email": self.email,
                 "provider": self.providers,
             }
-        if omit_assignments == False:
+        if omit_assignments is False:
             assignments = []
             for assignment in self.assignments:
                 assignments.append(assignment.convert_to_dict())
@@ -194,7 +196,7 @@ class Student:
                 "assignments": assignments,
             }
 
-    def renwebLogin(self) -> requests.Session:
+    def renweb_login(self) -> requests.Session:
         """Logs into the renweb website"""
         try:
 
@@ -206,23 +208,24 @@ class Student:
             print("Failed to authenticate with Renweb Servers")
 
     def import_card_from_renweb(self):
+        """imports data from the given renweb server url"""
 
-        if self.renweb_logged_in != True:
-            self.renwebLogin()
+        if self.renweb_logged_in is not True:
+            self.renweb_login()
         try:
-            reportCardMain = self.renweb_session.get(
+            report_card_main = self.renweb_session.get(
                 self.renweb_link + "/pwr/student/report-card.cfm"
             )
 
-            soup = BeautifulSoup(reportCardMain, "html.parser")
-            NASReportCardElement = soup.find_all("iframe", {"class": "gframe"})
+            soup = BeautifulSoup(report_card_main, "html.parser")
+            nas_report_card_element = soup.find_all("iframe", {"class": "gframe"})
 
-            reportCardLocation = NASReportCardElement[0].attrs["src"]
+            report_card_location = nas_report_card_element[0].attrs["src"]
 
             report_card_request = self.renweb_session.get(
-                self.renweb_link + reportCardLocation
+                self.renweb_link + report_card_location
             )
-            reportCardHTML = report_card_request.content
+            report_card_html = report_card_request.content
 
         except MissingSchema as error:
             print("HEEHEE HAAA")
@@ -230,11 +233,11 @@ class Student:
             # Open local file
             report_card_request = open(self.renweb_link, "r", encoding="utf-8").read()
 
-            reportCardHTML = report_card_request
+            report_card_html = report_card_request
 
         self.report_card = ReportCard()
 
-        self.report_card.extract(reportCardHTML)
+        self.report_card.extract(report_card_html)
 
         self.renweb_session.close()
 
@@ -254,7 +257,8 @@ class Student:
 
     def calculate_timeframe(self, rangetype: int = None) -> tuple | list:
         """Function that creates a timeframe
-        :param rangetype: 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
+        :param rangetype: 1 for today, 2 for tomorrow, 3 for this week, 4 for next week,
+        5 for this month, 6 for next month"""
         if rangetype == 1:
             raw_format = dt.datetime.today()
             return self.datetime_to_tuple(raw_format)
@@ -323,7 +327,10 @@ class Student:
             unprocessed_assignments = fetch_calendar(link, is_file=is_file)
         except FileNotFoundError:
             print(
-                "Error fetching raw assignments. (Calendar file could not be reached or accessed.) | Possible fixes include checking internet connection.\nThere could also be no events."
+                """Error fetching raw assignments.
+                (Calendar file could not be reached or accessed.)
+                Possible fixes include checking internet connection.
+                \nThere could also be no events."""
             )
             unprocessed_assignments = None
 
@@ -406,10 +413,13 @@ class Student:
     ):
         """Function syncs assignments Object type with cloud calendar file provider
         :param provider: url of calendar file provider
-        :param range_start: tuple of start date ex. (2020, 1, 2) --> (year, month, day)
+        :param range_start: tuple of start date ex. (2020, 1, 2) -->
+        (year, month, day)
         :param range_end: tuple of end date
-        :param rangetype: None for no preconfig, 0 for all, 1 for today, 2 for tomorrow, 3 for this week, 4 for next week, 5 for this month, 6 for next month"""
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING CALENDARS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        :param rangetype: None for no preconfig, 0 for all, 1 for today,
+        2 for tomorrow, 3 for this week, 4 for next week,
+        5 for this month, 6 for next month"""
+        # ~~~~~~~~~~SYNCING CALENDARS~~~~~~~~~~~~~~~~
         listofassignments = []
         for provider in self.providers:
             # x = self.providers[provider]
@@ -431,15 +441,17 @@ class Student:
                 # then we replace the object's assignments attribute with that.
         self.assignments = final_export
 
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        if self.renweb == True:
+        # ~~~~~~~~~~SYNCING REPORT CARDS~~~~~~~~~~~~~~~~
+        if self.renweb is True:
             self.import_card_from_renweb()
 
-        if self.synced == False:
+        if self.synced is False:
             self.synced = True
 
 
-class Course():
+class Course:
+    """Object representing a Course a student may take in an education setting."""
+
     def __init__(
         self,
         name: str = None,
@@ -469,14 +481,16 @@ class Course():
         self.credit_second_semester = credit_second_semester
 
 
-class Assignment():
+class Assignment:
+    """A class representing the an educational assignment a student may be given."""
+
     def __init__(
         self,
         name: str,
         description: str,
         due_date: dt.datetime,
         course: Course,
-        isHomework: bool = None,
+        is_homework: bool = None,
         point_weight: int = None,
         completed: bool = False,
         grade: float = None,
@@ -490,7 +504,7 @@ class Assignment():
         self.completed = completed
         self.grade = grade
         self.teacher = teacher
-        self.isHomework = isHomework
+        self.is_homework = is_homework
 
     def convert_to_dict(self) -> dict:
         """convert each assignment into a dictionary"""
@@ -510,12 +524,12 @@ class Assignment():
 def fetch_calendar(src: str, is_file: bool = False):
     """Fetches calendar file from url,
     :param: is_file | uses a file opener instead of a link"""
-    if is_file == False:
+    if is_file is False:
         file = urllib.request.urlopen(src)
         # return x
         raw_assignments = Calendar.from_ical(file.read())
         return raw_assignments
-    if is_file == True:
+    if is_file is True:
         file = open(src, "r", encoding="utf-8")
         # return file
         raw_assignments = Calendar.from_ical(file.read())
