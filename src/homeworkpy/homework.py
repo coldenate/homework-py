@@ -122,7 +122,7 @@ class Student:
         email: str = None,
         assignments: list = None,
         report_card: ReportCard = None,
-        classes: dict = None,
+        courses: dict = None,
         renweb: bool = False,
         renweb_link: str = None,
         renweb_credentials: dict = None,
@@ -138,7 +138,7 @@ class Student:
         # self.providerIsFile = is_file
         self.assignments: list = assignments
         self.report_card: ReportCard = report_card
-        self.classes = classes
+        self.courses = courses
         self.renweb = renweb
         self.renweb_link: self = renweb_link
         self.renweb_credentials: dict = renweb_credentials
@@ -158,11 +158,12 @@ class Student:
                 "UserType": "PARENTSWEB-STUDENT",  # broken across sites
                 "login": "Log+In",
             }
+            # TODO Update this to the correct value when done
 
         if self.assignments is None:
             self.assignments = []
-        if self.classes is None:
-            self.classes = {}
+        if self.courses is None:
+            self.courses = {}
 
         if self.renweb is True:
             self.renweb_session = requests.Session()
@@ -174,7 +175,7 @@ class Student:
             self.synced = True
         if self.synced and self.report_card is not None:
             #  assume classes from renweb report card.
-            self.classes = self.report_card.extract_classes()
+            self.courses = self.report_card.extract_classes()
         if self.auto_sort is True:
             self.sort_assignments()
 

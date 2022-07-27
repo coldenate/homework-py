@@ -13,5 +13,6 @@
 		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot_application",
 		"C:\\Users\\Weird\\OneDrive\\Computer Science Projects\\Python PROJECTS\\Main Stream Projects\\Discord Bots\\Music Bot\\sounds\\bot_application\\bot",
 		"./src/homeworkpy"
-	]
+	],
+	"python.linting.enabled": true
 }
