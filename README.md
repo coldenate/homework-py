@@ -18,11 +18,11 @@ I won't fully let go of this project as a maintainer, I simply would like to ste
 
 ### How to install
 
-<h1 align="center">
+
 ```sh
 pip install -U homeworkpy
 ```
-</h1>
+
 
 ### Features
 
