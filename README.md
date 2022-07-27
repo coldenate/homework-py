@@ -2,18 +2,7 @@
 
 ## NOTICE
 
-Only one singular school's renweb has been confirmed as being supported in initial requests. (This repo is very experiementaldjnkdjnsd) 
-
-Hallo!! Homework-py is makeshift wrapper of the SIS-s[^1] I deal with as a student, and the library adds pythonic ways of tracking the general data a student may need to keep track of. 
-
-### What can this be used for?
-
-> In my personal opinion, there may be streamlined wrappers for systems like Canvas. The difference between this library and that library is that this library attempts > to simplify it down to a single cause - tracking a students todo-s and to-dones. (grades)
-
-- Bots
-- Personal Dashboards
-- Alert Systems 
-
+This is an unofficial wrapper for FACTS SIS Renweb. It utilizes a combination of web scraping and data parsing to objectify student data. There are plans to branch out to other services like Canvas, Moodle, and Google Classroom.
 
 ### Why is this existing when this has been solved before?
 
@@ -27,13 +16,14 @@ It is an educational project that I had passion for, so I chose to begin it desp
 
 ### TODO
 
-- [x] Basic Support for Moodle Calendar OOP Processing
+- [x] Basic Support for Moodle Calendar OOP Processing (although this is a renweb wrapper, I have plans to expand it into accepting other services. Canvas, Moodle, Google Classroom)
 
 > From my knowledge of (nothingness...) OOP, the library should be using a very basic form of OOP as of the first release. I am not sure though. `¯\_(ツ)_/¯`
 
+### Features
+
 - [x] Implement seperate data flagging for Renweb's calendar (PT 1)
-- [ ] Implement seperate data flagging for Renweb's calendar (PT 2)
+- [x] Implement seperate data flagging for Renweb's calendar (PT 2)
 - [x] Implement Renweb Report Card Data Extraction 
-- [ ] Clean up code with formatting and formatting
-- [ ] Setup as a python package
-- [ ] Release! (as a standard version with correct semantic versioning)
+- [x] Clean up code with formatting and formatting
+- [x] Setup as a python package
