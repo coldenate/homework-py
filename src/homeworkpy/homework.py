@@ -130,6 +130,7 @@ class Student:
         renweb_logged_in: bool = False,
         renweb_calendar_sync: bool = False,
         auto_sync: bool = False,
+        auto_sort: bool = False,
     ):
         self.name = name
         self.email = email
@@ -147,6 +148,7 @@ class Student:
         self.renweb_logged_in: bool = renweb_logged_in
         self.auto_sync: bool = auto_sync
         self.synced: bool = False
+        self.auto_sort: bool = auto_sort
 
         if self.renweb_credentials is None:
             self.renweb_credentials = {
@@ -173,6 +175,14 @@ class Student:
         if self.synced and self.report_card is not None:
             #  assume classes from renweb report card.
             self.classes = self.report_card.extract_classes()
+        if self.auto_sort is True:
+            self.sort_assignments()
+
+    def sort_assignments(self) -> list:
+        """A function that sorts the self.assignments list by datetime.date in-place but also
+        returns a copy of the sorted list."""
+        self.assignments.sort(key=lambda x: x.due_date)
+        return self.assignments
 
     def convert_to_dict(self, omit_assignments: bool = False) -> dict:
         """Convert all attributes of student to dictionary,
@@ -255,6 +265,15 @@ class Student:
         start_date = tuple(map(int, un_tupled_start_date.split(", ")))
         return start_date
 
+    def datetime_to_string(self, datetime: dt.datetime, humanize: bool = False) -> str:
+        """converts datetime object into string"""
+
+        if humanize is False:
+            starttime_formatted = datetime.strftime("%Y, %m, %d")
+        if humanize is True:
+            starttime_formatted = datetime.strftime("%B %d, %Y")
+            return starttime_formatted
+
     def calculate_timeframe(self, rangetype: int = None) -> tuple | list:
         """Function that creates a timeframe
         :param rangetype: 1 for today, 2 for tomorrow, 3 for this week, 4 for next week,
@@ -305,7 +324,7 @@ class Student:
             table.add_row(
                 assignment.title,
                 assignment.description,
-                assignment.due_date,
+                self.datetime_to_string(assignment.due_date, True),
                 assignment.course.name,
             )
         console = Console()
@@ -387,10 +406,11 @@ class Student:
                 except KeyError:
                     event_course = "No course"
                 try:
-                    event_starttime = event["DTSTART"].dt
-                    starttime_formatted = event_starttime.strftime("%B %d, %Y")
+                    date = event["DTSTART"].dt
+                    date_final = dt.datetime(date.year, date.month, date.day)
+
                 except KeyError:
-                    event_starttime = "No Start Time"
+                    date_final = "No Start Time"
                 try:
                     event_description = event["DESCRIPTION"]
                 except KeyError:
@@ -399,7 +419,7 @@ class Student:
                 assignment = Assignment(
                     name=f"{event_name}",
                     description=f"{event_description}",
-                    due_date=f"{starttime_formatted}",
+                    due_date=date_final,
                     course=Course(name=f"{event_course}"),
                 )
                 assignments.append(assignment)
