@@ -1,4 +1,6 @@
 # homework-py
+[![Released to PyPi](https://github.com/colderinit/homework-py/actions/workflows/release.yml/badge.svg)](https://github.com/colderinit/homework-py/actions/workflows/release.yml)
+
 An unofficial wrapper for FACTS SIS Renweb. It utilizes a combination of web scraping and data parsing to objectify student data.
 There *are* plans to branch out to other services like Canvas, Moodle, and Google Classroom.
 
