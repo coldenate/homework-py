@@ -1,22 +1,12 @@
-# EVERYTHING IS BROKEN
-
-Yes, you heard me right. You can consider this project deprecated. I am still researching the backend apis. Unfortunately, the websites are changing, and I can only verify these features will still work:
-
--   Any ICS File conversions (parsings and representations)
--   Scraping with renweb
-
-If you have a keen eye, this is basically all we have right now, but the plans for this repo are deprecated (meaning the future of development would go weird). I have decided to put more effort into this when I have the time to sit down and research how to hack my way into the clean bliss of a working wrapper. We'll see if I every finish this!!
-
-Cheers for now.
-
-<details>
-<summary>If you'd like to view the current readme, click me!</summary>
-
 # homework-py
 [![Released to PyPi](https://github.com/colderinit/homework-py/actions/workflows/release.yml/badge.svg)](https://github.com/colderinit/homework-py/actions/workflows/release.yml)
 
 An unofficial wrapper for FACTS SIS Renweb. It utilizes a combination of web scraping and data parsing to objectify student data.
 There _are_ plans to branch out to other services like Canvas, Moodle, and Google Classroom.
+
+## What is going to happen:
+
+- Extension to Canvas API
 
 ## Why is this project a little dead?
 
@@ -106,7 +96,6 @@ Full list of technical dependencies found [here](https://github.com/colderinit/h
 -   requests = {version = "2.28.0"}
 -   rich = {version = "12.4.4"}
 
-</details>
 
 ## MIT License
 
